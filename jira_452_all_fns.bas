@@ -2,16 +2,16 @@
 '' FrmFechaPror.frm()
 ''
 Sub Cmd_Tarificar_Click()
-Dim IndProrratear As Boolean
-Dim sql As String
-Dim ihstmt As Long
-Dim Fetch As Long
-Dim ENDCODE As Integer
-Dim F_STAT As String
-Dim A1 As String
-Dim b As String
-Dim sFECM As String
-Dim strSuplemento_DTSUAS As String
+    Dim IndProrratear As Boolean
+    Dim sql As String
+    Dim ihstmt As Long
+    Dim Fetch As Long
+    Dim ENDCODE As Integer
+    Dim F_STAT As String
+    Dim A1 As String
+    Dim b As String
+    Dim sFECM As String
+    Dim strSuplemento_DTSUAS As String
 
     If Trim(TX_Fech.Text) = "" Or GEN_VALFEC(TX_Fech) <> 0 Then
             Screen.MousePointer = 0
@@ -305,7 +305,6 @@ Public Sub PMS_TARMTTOIND()
     If G_SW_TARMTTO = 1 Or (G_SW_TARMTTO = 0 And bCambioTomador) Then
             'Comprueba el suplemento realizado
             bCambio_FPago = (Trim$(G_POLI2FOPA) <> Trim$(Forma_Pago))
-            'bCambio_Tarifa = (Trim(G_POLI2CDTA) <> Trim(Mid(DCAS015.TX_CDTA.Text, 71, 5))) Or ((Trim(G_POLI2FVTAR) <> Trim(G_POLIFVTAR) And G_POLI2ESPA <> "04"))
             bCambio_Tarifa = (Trim(G_POLI2CDTA) <> Trim(DCAS015.TX_CDTA.Text)) Or ((Trim(G_POLI2FVTAR) <> Trim(G_POLIFVTAR) And G_POLI2ESPA <> "04"))
             bReactivacion = (Trim$(G_POLI2ESPA) <> G_ALTAP And Mid$(DCAS015.CB_Espa.Text, 71, 2) = G_ALTAP)
                         
@@ -313,10 +312,6 @@ Public Sub PMS_TARMTTOIND()
             
             bProvincia = (Trim$(G_POLI2PROVINCIA_TARIFICACION) <> Trim$(Mid(DCAS017.Cmb_ProvinciaTar.Text, 71, 2)))
             bOtros_Suplementos = (Not bCambio_FPago And Not bCambio_Tarifa And Not bReactivacion And Not bCambio_TipoDescuento And Not bProvincia)
-            'If (bCambio_FPago And (bCambio_Tarifa Or bCambio_TipoDescuento Or bReactivacion Or bProvincia)) Or _
-                (bCambio_Tarifa And (bCambio_TipoDescuento Or bReactivacion Or bProvincia)) Or _
-                (bCambio_TipoDescuento And (bReactivacion Or bProvincia)) Or (bReactivacion And bProvincia) Or _
-                (Not bOtros_Suplementos And G_SWSUPL = -1) Then
             If (bCambio_FPago And (bCambio_Tarifa Or bCambio_TipoDescuento Or bReactivacion Or bProvincia)) Or _
                 (bCambio_Tarifa And (bReactivacion Or bProvincia)) Or _
                 (bCambio_TipoDescuento And (bReactivacion Or bProvincia)) Or (bReactivacion And bProvincia) Or _
@@ -356,7 +351,6 @@ Public Sub PMS_TARMTTOIND()
                 End If
               End If
             End If
-        'End If
         If (bCambio_Tarifa Or bCambio_TipoDescuento Or bProvincia) And Not bReactivacion Then
             Fecha_Correcta = True
             
@@ -1237,20 +1231,20 @@ End Sub
 ''
 Function PMF_ERROR(CODERROR As String, Optional Incluir As String) As Integer
 
-Dim Hstmt9 As Long
-Dim fetchcode As Long
-Dim ENDCODE As Long
-'Esta funcion recibe el codigo de error del mensaje que se quiere
-'displayar lo busca en la base de datos DTMERR.DBF y una vez encontrado
-'ese codigo cogemos su DESCRIPCION (MERRDSER en la base de datos) que sera el
-'mensaje a displayar y TIPOERROR (MERRCDTE en la base de datos) que sera un
-'numero que indica el tipo de mensaje (precaucion,warning,error,informativo)
-'y los botones a displayar en la caja ademas del correspondiente icono.
+    Dim Hstmt9 As Long
+    Dim fetchcode As Long
+    Dim ENDCODE As Long
+    'Esta funcion recibe el codigo de error del mensaje que se quiere
+    'displayar lo busca en la base de datos DTMERR.DBF y una vez encontrado
+    'ese codigo cogemos su DESCRIPCION (MERRDSER en la base de datos) que sera el
+    'mensaje a displayar y TIPOERROR (MERRCDTE en la base de datos) que sera un
+    'numero que indica el tipo de mensaje (precaucion,warning,error,informativo)
+    'y los botones a displayar en la caja ademas del correspondiente icono.
 
-'Declaraci�n de variables:
+    'Declaraci�n de variables:
 
 
-'Conexi�n con la base de datos
+    'Conexi�n con la base de datos
     
     Stat$ = "SELECT MERRCDER, MERRDSER, MERRCDTE, MERRDSCT from DTMERR where MERRCDER = '" + CODERROR + "'"
 
@@ -1296,4 +1290,78 @@ Dim ENDCODE As Long
 'Devuelvo el numero de la tecla pulsada
 
     PMF_ERROR = G_I
+End Function
+
+
+''
+'' SDTARIFI.bas:2708
+''
+Public Sub PMS_BORRA_DETALLE_PRORRATEO(ByVal F_POLIZA As String, ByVal F_CERTIFICADO As String, ByVal F_NUPR As String)
+    'Procedimiento PL/SQL
+    Dim lHSTMT As Long
+    Dim iParametro As Integer
+    Dim iExec As Integer
+    Dim iEnd As Integer
+    'Definici�n de los par�metros
+    Dim paramTipoSql As Integer
+    Dim paramColDef As Long
+    Dim paramColScale As Integer
+    Dim paramNullable As Integer
+    Dim dPoliza As Double
+    Dim dCertificado As Double
+    Dim dNumProrrateo As Double
+    dPoliza = CDbl(F_POLIZA)
+    dCertificado = CDbl(F_CERTIFICADO)
+    If Trim(F_NUPR) <> "" Then
+       dNumProrrateo = CDbl(F_NUPR)
+    Else
+       dNumProrrateo = -1
+    End If
+     'Prepara el cursor
+    lHSTMT = SQL_PREPARE(G_HDBC, "{Call PCK_TARPRO.PMS_BORRA_DETALLE_PRORRATEO(?,?,?)}")
+    'Prepara los par�metros
+    'Poliza
+    iParametro = SQLDescribeParam(lHSTMT, 1, paramTipoSql, paramColDef, paramColScale, paramNullable)
+    iParametro = SQLBindParameter(lHSTMT, 1, SQL_PARAM_INPUT, SQL_C_DOUBLE, paramTipoSql, paramColDef, paramColScale, dPoliza, paramColDef, SQL_NTS)
+    'Certificado
+    iParametro = SQLDescribeParam(lHSTMT, 2, paramTipoSql, paramColDef, paramColScale, paramNullable)
+    iParametro = SQLBindParameter(lHSTMT, 2, SQL_PARAM_INPUT, SQL_C_DOUBLE, paramTipoSql, paramColDef, paramColScale, dCertificado, paramColDef, SQL_NTS)
+    'Numero prorrateo
+    iParametro = SQLDescribeParam(lHSTMT, 3, paramTipoSql, paramColDef, paramColScale, paramNullable)
+    iParametro = SQLBindParameter(lHSTMT, 3, SQL_PARAM_INPUT, SQL_C_DOUBLE, paramTipoSql, paramColDef, paramColScale, dNumProrrateo, paramColDef, SQL_NTS)
+    
+     'Ejecuta el procedimiento
+    iExec = SQL_EXECUTE(lHSTMT)
+    'Cierra el cursor
+    iEnd = SQL_END(lHSTMT)
+
+End Sub
+
+
+
+''
+'' MdlTiposDescuento.bas:849
+''
+'****************************************************************************
+'NOMBRE     : CambioDescuento
+'PARAMETROS : array con los siete grupos de descuento de la poliza/certificado
+'             array con los siete grupos de descuento odificados
+'FUNCION    : Comprueba si en el array de descuentos hay algun descuento definido
+'****************************************************************************
+Public Function CambioDescuento(aDescuentos1() As SubDescuento, aDescuentos2() As SubDescuento) As Boolean
+    Dim I As Integer
+    CambioDescuento = False
+    For I = 0 To UBound(aDescuentos1)
+        'Se comparan los descuentos si ninguno de los dos contienen el c�digo que indica que se mantiene el descuento
+        If aDescuentos1(I).Codigo <> aDescuentos2(I).Codigo And Not (aDescuentos1(I).Codigo = c_DescNoFiltrar Or aDescuentos2(I).Codigo = c_DescNoFiltrar) Then
+            CambioDescuento = True
+            Exit Function
+        End If
+        If aDescuentos1(I).Grupo = "04" Or aDescuentos1(I).Grupo = "05" Then
+          If aDescuentos1(I).Valor <> aDescuentos2(I).Valor Then
+            CambioDescuento = True
+            Exit Function
+          End If
+        End If
+    Next I
 End Function
