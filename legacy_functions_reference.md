@@ -364,40 +364,84 @@ Cuando `G_POCE2DOMI` **NO contiene** el carácter `#`, se considera formato anti
 
 ```sql
 INSERT INTO TCSUPL (
+   -- Campos de identificación (4 campos)
   SUPLCDDE, SUPLNPOL, SUPLCDCE, SUPLNUSU,
+  
+  -- Campos de tipo y estado (11 campos)
   SUPLTIPO, SUPLSITP, SUPLSITC, SUPLFECA, SUPLFECB, SUPLFECC,
   SUPLFEBA, SUPLCDPT, SUPLCDTA, SUPLFOPA, SUPLTIPA,
+  
+  -- Campos de personas y referencias (9 campos)
   SUPLNUPE, SUPLIDCP, SUPLIDCO, SUPLCDTR, SUPLIDEX,
   SUPLCOBR, SUPLAGTA, SUPLAGTB, SUPLINSP,
+  
+  -- Campos de primas e importes (10 campos)
   SUPLPRNT, SUPLPRNE, SUPLRECA, SUPLRECE, SUPLIMPT, SUPLIMPE,
   SUPLTORE, SUPLMOCE, SUPLCDPS, SUPLCDPO,
+  
+  -- Campos adicionales de importes (14 campos)
   SUPLTFNO_NUTE, SUPLCRNT, SUPLCRNE, SUPLCECA, SUPLCECE,
   SUPLCMPT, SUPLCMPE, SUPLCORE, SUPLIPUN, SUPLIPUE,
-  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE, SUPLCDRP, SUPLCDPC,
+  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE,
+  
+  -- Campos de referencia (2 campos)
+  SUPLCDRP, SUPLCDPC,
+  
+  -- Campos P207 - provincia y switches (7 campos)
   SUPLPROVINCIA_TARIFICACION, SUPLSWPROVINCIA, SUPLSWPRODUCCION,
   SUPLSWTARIFA, SUPLSWDCTO, SUPLDCTONUMPERSONAS, SUPLRECFORMAPAGO,
+  
+  -- Campos de adaptación (2 campos)
   SUPLADAP, SUPLTERRITORIALIDAD,
-  SUP_NOMBREVIA,  -- Solo este campo de domicilio
+  
+  -- Campos de domicilio (1 campo, formato viejo)
+  SUP_NOMBREVIA
+  
+  -- Campos de descuento - 8 grupos
   SUPLDESC_G01, SUPLDESC_G02, SUPLDESC_G03, SUPLDESC_G04,
   SUPLDESC_G05, SUPLDESC_G06, SUPLDESC_G07, SUPLDESC_G08,
+  
+  -- Indicadores (2 campos)
   SUPLINDVTAC, SUPLINDPRIC
 ) VALUES (
-  635, 12345678, 0, 1,
-  '03', 'A', 'A', '20241115', '20240101', '20240101',
-  NULL, 100, 'T01', 'M', 'D',
-  2, 'X1234567A', 'Y9876543B', '01', 'S',
-  'S', 'AG001', 'AG002', 'S',
-  1200.50, 0, 120.05, 0, 252.11, 0,
-  1572.66, 'S', '28001', '28',
-  '912345678', 0, 0, 0, 0,
-  0, 0, 0, 0, 0,
-  0, 0, NULL, 0, 0, 0,
-  '28', 'S', 'S',
-  'N', 'N', 0, 0,
-  'A', 'N',
-  'CALLE GRAN VIA 123, 5º B',  -- Dirección completa en formato antiguo
-  10.00, 5.00, 0, 0, 0, 0, 0, 0,
-  'S', 'N'
+   -- Campos de identificación (4 campos)
+   :delegationCode, :policyNumber, :certificateNUmber, :supplementNmber,
+
+   -- Campos de tipo y estado (11 campos)
+   '03', 'A', 'A', '20241115', '20240101', '20240101',
+   NULL, 100, 'T01', 'M', 'D',
+
+   -- Campos de personas y referencias (9 campos)
+   2, 'X1234567A', 'Y9876543B', '01', 'S',
+   'S', 'AG001', 'AG002', 'S',
+
+   -- Campos de primas e importes (10 campos)
+   1200.50, 0, 120.05, 0, 252.11, 0,
+   1572.66, 'S', '28001', '28',
+
+   -- Campos adicionales de importes (14 campos)
+   '912345678', 0, 0, 0, 0,
+   0, 0, 0, 0, 0,
+   0, 0, NULL, 0, 
+
+   -- Campos de referencia (2 campos)
+   0, 0,
+
+   -- Campos P207 - provincia y switches (7 campos)
+   '28', 'S', 'S',
+   'N', 'N', 0, 0,
+
+   -- Campos de adaptación (2 campos)
+   'A', 'N',
+
+   -- Campos de domicilio (1 campo, formato viejo)
+   'CALLE GRAN VIA 123, 5º B',
+
+   -- Campos de descuento - 8 grupos
+   10.00, 5.00, 0, 0, 0, 0, 0, 0,
+   
+   -- Indicadores (2 campos)
+   'S', 'N'
 )
 ```
 
@@ -407,81 +451,164 @@ Cuando `G_POCE2DOMI` **contiene** el carácter `#`, se parsean los 11 campos de 
 
 ```sql
 INSERT INTO TCSUPL (
+   -- Campos de identificación (4 campos)
   SUPLCDDE, SUPLNPOL, SUPLCDCE, SUPLNUSU,
+  
+  -- Campos de tipo y estado (11 campos)
   SUPLTIPO, SUPLSITP, SUPLSITC, SUPLFECA, SUPLFECB, SUPLFECC,
   SUPLFEBA, SUPLCDPT, SUPLCDTA, SUPLFOPA, SUPLTIPA,
+  
+  -- Campos de personas y referencias (9 campos)
   SUPLNUPE, SUPLIDCP, SUPLIDCO, SUPLCDTR, SUPLIDEX,
   SUPLCOBR, SUPLAGTA, SUPLAGTB, SUPLINSP,
+  
+  -- Campos de primas e importes (10 campos)
   SUPLPRNT, SUPLPRNE, SUPLRECA, SUPLRECE, SUPLIMPT, SUPLIMPE,
   SUPLTORE, SUPLMOCE, SUPLCDPS, SUPLCDPO,
+  
+  -- Campos adicionales de importes (14 campos)
   SUPLTFNO_NUTE, SUPLCRNT, SUPLCRNE, SUPLCECA, SUPLCECE,
   SUPLCMPT, SUPLCMPE, SUPLCORE, SUPLIPUN, SUPLIPUE,
-  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE, SUPLCDRP, SUPLCDPC,
+  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE,
+  
+  -- Campos de referencia (2 campos)
+  SUPLCDRP, SUPLCDPC,
+  
+  -- Campos P207 - provincia y switches (7 campos)
   SUPLPROVINCIA_TARIFICACION, SUPLSWPROVINCIA, SUPLSWPRODUCCION,
   SUPLSWTARIFA, SUPLSWDCTO, SUPLDCTONUMPERSONAS, SUPLRECFORMAPAGO,
+  
+  -- Campos de adaptación (2 campos)
   SUPLADAP, SUPLTERRITORIALIDAD,
-  -- 11 campos de domicilio normalizado
+  
+  -- Campos de domicilio (11 campos, formato nuevo)
   SUP_CDG_TIPOVIA, SUP_NOMBREVIA, SUP_NUMEROVIA,
   SUP_PORTAL, SUP_BLOQUE, SUP_ESCALERA,
   SUP_PISO, SUP_PUERTA, SUP_RESTOVIA,
   SUP_CPOBLA_INE, SUP_CVIA_INE,
-  -- Descuentos e indicadores
+  
+  -- Campos de descuento - 8 grupos
   SUPLDESC_G01, SUPLDESC_G02, SUPLDESC_G03, SUPLDESC_G04,
   SUPLDESC_G05, SUPLDESC_G06, SUPLDESC_G07, SUPLDESC_G08,
+  
+  -- Indicadores (2 campos)
   SUPLINDVTAC, SUPLINDPRIC
 ) VALUES (
-  635, 12345678, 1, 5,
-  '03', 'A', 'A', '20241115', '20240101', '20240101',
-  NULL, 100, 'T01', 'M', 'D',
-  2, 'X1234567A', 'Y9876543B', '01', 'S',
-  'S', 'AG001', 'AG002', 'S',
-  1200.50, 0, 120.05, 0, 252.11, 0,
-  1572.66, 'S', '28001', '28',
-  '912345678', 0, 0, 0, 0,
-  0, 0, 0, 0, 0,
-  0, 0, NULL, 0, 0, 0,
-  '28', 'S', 'S',
-  'N', 'N', 0, 0,
-  'A', 'N',
-  -- Domicilio normalizado (11 campos)
-  'CL',           -- SUP_CDG_TIPOVIA (código tipo vía)
-  'GRAN VIA',     -- SUP_NOMBREVIA
-  '123',          -- SUP_NUMEROVIA
-  '',             -- SUP_PORTAL
-  '',             -- SUP_BLOQUE
-  'A',            -- SUP_ESCALERA
-  '5',            -- SUP_PISO
-  'B',            -- SUP_PUERTA
-  '',             -- SUP_RESTOVIA (resto dirección)
-  '2807901',      -- SUP_CPOBLA_INE (código población INE)
-  '280790100123', -- SUP_CVIA_INE (código vía INE)
-  -- Descuentos G01-G08
-  10.00, 5.00, 0, 0, 0, 0, 0, 0,
-  -- Indicadores
-  'S', 'N'
+   -- Campos de identificación (4 campos)
+   :delegationCode, :policyNumber, :certificateNUmber, :supplementNmber,
+
+   -- Campos de tipo y estado (11 campos)
+   '03', 'A', 'A', '20241115', '20240101', '20240101',
+   NULL, 100, 'T01', 'M', 'D',
+
+   -- Campos de personas y referencias (9 campos)
+   2, 'X1234567A', 'Y9876543B', '01', 'S',
+   'S', 'AG001', 'AG002', 'S',
+
+   -- Campos de primas e importes (10 campos)
+   1200.50, 0, 120.05, 0, 252.11, 0,
+   1572.66, 'S', '28001', '28',
+
+   -- Campos adicionales de importes (14 campos)
+   '912345678', 0, 0, 0, 0,
+   0, 0, 0, 0, 0,
+   0, 0, NULL, 0, 
+
+   -- Campos de referencia (2 campos)
+   0, 0,
+
+   -- Campos P207 - provincia y switches (7 campos)
+   '28', 'S', 'S',
+   'N', 'N', 0, 0,
+
+   -- Campos de adaptación (2 campos)
+   'A', 'N',
+
+   -- Campos de domicilio (11 campos)
+   'CL',           -- SUP_CDG_TIPOVIA (código tipo vía)
+   'GRAN VIA',     -- SUP_NOMBREVIA
+   '123',          -- SUP_NUMEROVIA
+   '',             -- SUP_PORTAL
+   '',             -- SUP_BLOQUE
+   'A',            -- SUP_ESCALERA
+   '5',            -- SUP_PISO
+   'B',            -- SUP_PUERTA
+   '',             -- SUP_RESTOVIA (resto dirección)
+   '2807901',      -- SUP_CPOBLA_INE (código población INE)
+   '280790100123', -- SUP_CVIA_INE (código vía INE)
+
+   -- Campos de descuento - 8 grupos
+   10.00, 5.00, 0, 0, 0, 0, 0, 0,
+
+   -- Indicadores (2 campos)
+   'S', 'N'
 )
 ```
 
 ### Firma
 
 ```vb
-Public Sub INSERTAR_SUPLEMENTO_TCSUPL(ByVal G_POCE2CDDE As String, ByVal G_POCE2NPOL As String, _
-                           ByVal G_POCE2CDCE As String, ByVal G_POCE2NUSU As String, ByVal G_CER As String, ByVal G_POLI2ESPA As String, ByVal G_POCE2ALBA As String, _
-                           ByVal G_POCE2FECB As String, ByVal G_POCE2FECA As String, ByVal G_POCE2FEBA As String, ByVal G_POLI2CDPT As String, _
-                           ByVal G_POCE2CDTA As String, ByVal G_POCE2FOPA As String, ByVal G_POCE2TIPA As String, ByVal G_POCE2NUPE As String, _
-                           ByVal G_POLI2IDCP As String, ByVal G_POLI2IDCO As String, ByVal G_POLI2CDTR As String, ByVal G_POLI2IDEX As String, _
-                           ByVal G_POCE2COBR As String, ByVal G_POCE2AGTA As String, ByVal G_POCE2AGTB As String, _
-                           ByVal G_CAT_TIPO_ANT As String, ByVal G_POCE2PRNT As String, ByVal G_POCE2PRNE As String, ByVal G_POCE2RECA As String, _
-                           ByVal G_POCE2RECE As String, ByVal G_POCE2IMPT As String, ByVal G_POCE2IMPE As String, ByVal G_POCE2TORE As String, _
-                           ByVal G_POCE2MOBA As String, ByVal G_POCE2DOMI As String, ByVal G_POCE2CDPS As String, ByVal G_POCE2CDPO As String, _
-                           ByVal G_POCE2TFNO As String, ByVal G_POCE2CRNT As String, ByVal G_POCE2CRNE As String, ByVal G_POCE2CECA As String, _
-                           ByVal G_POCE2CECE As String, ByVal G_POCE2CMPT As String, ByVal G_POCE2CMPE As String, ByVal G_POCE2CORE As String, _
-                           ByVal G_POCE2IPUN As String, ByVal G_POCE2IPUE As String, ByVal G_POCE2CPUN As String, ByVal G_POCE2CPUE As String, _
-                           ByVal G_Fecha_Asegurado As String, ByVal G_POLI2IDMA As String, ByVal G_POLI2NUCE As String, ByVal G_POLI2CDRP As String, _
-                           ByRef G_POCEFECM As String, ByRef strSuplemento_DTSUAS As String, _
-                           ByVal G_POCEPROVINCIA_TARIFICACION As String, ByVal G_POCESWPROVINCIA As String, ByVal G_POCESWPRODUCCION As String, _
-                           ByVal G_POCESWTARIFA As String, ByVal G_POCESWDCTO As String, ByVal G_POCEDCTONUMPERSONAS As String, ByVal G_POCERECFORMAPAGO As String, _
-                           G_Descuentos() As SubDescuento)
+Public Sub INSERTAR_SUPLEMENTO_TCSUPL(
+    ByVal G_POCE2CDDE As String,
+    ByVal G_POCE2NPOL As String,
+    ByVal G_POCE2CDCE As String,
+    ByVal G_POCE2NUSU As String,
+    ByVal G_CER As String,
+    ByVal G_POLI2ESPA As String,
+    ByVal G_POCE2ALBA As String,
+    ByVal G_POCE2FECB As String,
+    ByVal G_POCE2FECA As String,
+    ByVal G_POCE2FEBA As String,
+    ByVal G_POLI2CDPT As String,
+    ByVal G_POCE2CDTA As String,
+    ByVal G_POCE2FOPA As String,
+    ByVal G_POCE2TIPA As String,
+    ByVal G_POCE2NUPE As String,
+    ByVal G_POLI2IDCP As String,
+    ByVal G_POLI2IDCO As String,
+    ByVal G_POLI2CDTR As String,
+    ByVal G_POLI2IDEX As String,
+    ByVal G_POCE2COBR As String,
+    ByVal G_POCE2AGTA As String,
+    ByVal G_POCE2AGTB As String,
+    ByVal G_CAT_TIPO_ANT As String,
+    ByVal G_POCE2PRNT As String,
+    ByVal G_POCE2PRNE As String,
+    ByVal G_POCE2RECA As String,
+    ByVal G_POCE2RECE As String,
+    ByVal G_POCE2IMPT As String,
+    ByVal G_POCE2IMPE As String,
+    ByVal G_POCE2TORE As String,
+    ByVal G_POCE2MOBA As String,
+    ByVal G_POCE2DOMI As String,
+    ByVal G_POCE2CDPS As String,
+    ByVal G_POCE2CDPO As String,
+    ByVal G_POCE2TFNO As String,
+    ByVal G_POCE2CRNT As String,
+    ByVal G_POCE2CRNE As String,
+    ByVal G_POCE2CECA As String,
+    ByVal G_POCE2CECE As String,
+    ByVal G_POCE2CMPT As String,
+    ByVal G_POCE2CMPE As String,
+    ByVal G_POCE2CORE As String,
+    ByVal G_POCE2IPUN As String,
+    ByVal G_POCE2IPUE As String,
+    ByVal G_POCE2CPUN As String,
+    ByVal G_POCE2CPUE As String,
+    ByVal G_Fecha_Asegurado As String,
+    ByVal G_POLI2IDMA As String,
+    ByVal G_POLI2NUCE As String,
+    ByVal G_POLI2CDRP As String,
+    ByRef G_POCEFECM As String,
+    ByRef strSuplemento_DTSUAS As String,
+    ByVal G_POCEPROVINCIA_TARIFICACION As String,
+    ByVal G_POCESWPROVINCIA As String,
+    ByVal G_POCESWPRODUCCION As String,
+    ByVal G_POCESWTARIFA As String,
+    ByVal G_POCESWDCTO As String,
+    ByVal G_POCEDCTONUMPERSONAS As String,
+    ByVal G_POCERECFORMAPAGO As String,
+    G_Descuentos() As SubDescuento)
 ```
 
 ### Parámetros Principales
@@ -623,34 +750,6 @@ End Sub
 - `ConvierteTextoComillaAmpersandOracle2(texto)`: Escapa caracteres especiales
 - `GEN_QUOTE(texto, char1, char2)`: Reemplaza caracteres en texto
 - `INSERTAR_SUPLEMENTO_TSSUPC`: Inserta cláusulas asociadas al suplemento
-
-### Ejemplo de Uso Real del Código Legacy
-
-```vb
-' Desde Generar_Suplemento() después de cargar datos de la póliza/certificado:
-mdlSuplementos.INSERTAR_SUPLEMENTO_TCSUPL sCDDE, sNpol, _
-                                            sCDCE, sNusu, _
-                                            sTipo, sESPA, sALBA, _
-                                            sFECB, sFECA, _
-                                            sFEBA, sCDPT, _
-                                            sCDTA, sFOPA, _
-                                            sTIPA, sNUPE, _
-                                            sIDCP, sIDCO, _
-                                            sCDTR, sIDEX, sCOBR, _
-                                            sAGTA, sAGTB, _
-                                            sINSP, sPRNT, _
-                                            sPRNE, sRECA, _
-                                            sRECE, sIMPT, _
-                                            sIMPE, sTORE, sMOBA, sDOMI, _
-                                            sCDPS, sCDPO, sTFNO, sCRNT, _
-                                            sCRNE, sCECA, sCECE, sCMPT, _
-                                            sCMPE, sCORE, sIPUN, sIPUE, _
-                                            sCPUN, sCPUE, _
-                                            Format(Now, "dd/mm/yyyy"), sIDMA, sNUCE, sCDRP, _
-                                            sFECM, sSUAS, sPROVINCIA_TARIFICACION, sSWPROVINCIA, _
-                                            sSWPRODUCCION, sSWTARIFA, sSWDCTO, sDCTONUMPERSONAS, _
-                                            sRECFORMAPAGO, aSubDescuentos
-```
 
 ### Operaciones Relacionadas (Contexto de Uso)
 

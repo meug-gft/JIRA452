@@ -1027,7 +1027,6 @@ Public Sub INSERTAR_SUPLEMENTO_TCSUPL(ByVal G_POCE2CDDE As String, ByVal G_POCE2
    strSql = strSql & " SUPLCOBR, SUPLAGTA, SUPLAGTB, SUPLINSP, SUPLPRNT,"
    strSql = strSql & " SUPLPRNE, SUPLRECA, SUPLRECE, SUPLIMPT, SUPLIMPE,"
    ''P415 - JL 03/11/09 se elimina de grabar el campo SUPLDOMI y se graba en los nuevos datos de domicilio
-   'strSQL = strSQL & " SUPLTORE, SUPLMOCE, SUPLDOMI, SUPLCDPS, SUPLCDPO,"
    strSql = strSql & " SUPLTORE, SUPLMOCE, SUPLCDPS, SUPLCDPO,"
    strSql = strSql & " SUPLTFNO_NUTE, SUPLCRNT, SUPLCRNE, SUPLCECA, SUPLCECE,"
    strSql = strSql & " SUPLCMPT, SUPLCMPE, SUPLCORE, SUPLIPUN, SUPLIPUE,"
@@ -1038,8 +1037,6 @@ Public Sub INSERTAR_SUPLEMENTO_TCSUPL(ByVal G_POCE2CDDE As String, ByVal G_POCE2
    
    'JSS Eliminamos SUPLTIPO_DCTO
    strSql = strSql & " SUPLADAP, SUPLTERRITORIALIDAD,"
-   'strSQL = strSQL & " SUPLTIPO_DCTO, SUPLADAP, SUPLTERRITORIALIDAD,"
-   'JSS
    
    ''P415 - JL 03/11/09 - Inicio: Nuevos campos de domicilio
    If InStr(G_POCE2DOMI, "#") = 0 Then ' solo viene relleno el  campo Domi con toda la direcci�n antigua
@@ -1054,7 +1051,6 @@ Public Sub INSERTAR_SUPLEMENTO_TCSUPL(ByVal G_POCE2CDDE As String, ByVal G_POCE2
    
    'JSS Nuevos campos de grupos de descuentos
    strSql = strSql & ", SUPLDESC_G01, SUPLDESC_G02, SUPLDESC_G03, SUPLDESC_G04, SUPLDESC_G05, SUPLDESC_G06, SUPLDESC_G07 , SUPLDESC_G08 "
-   'JSS
    
    strSql = strSql & ", SUPLINDVTAC, SUPLINDPRIC "   ' [614.30.R.IU.VB.282] MJBF: Se persistir� a partir de ahora tambi�n el valor del campo "Aplica VC" en TCSUPL.
 
@@ -1121,10 +1117,6 @@ Public Sub INSERTAR_SUPLEMENTO_TCSUPL(ByVal G_POCE2CDDE As String, ByVal G_POCE2
    strSql = strSql & "," & Grabacion_Importe(Trim$(G_POCEDCTONUMPERSONAS), True) & ""
    strSql = strSql & "," & Grabacion_Importe(Trim$(G_POCERECFORMAPAGO), True) & ""
    
-   'JSS
-   'strSQL = strSQL & "," & Grabar_BBDD(Trim$(G_POCETIPO_DCTO), "S")
-   'JSS
-   
    strSql = strSql & "," & Grabar_BBDD(Trim$(G_SUPLADAP_SUP), "S")
    strSql = strSql & "," & Grabar_BBDD(Trim$(G_SUPLTERRITORIALIDAD_SUP), "S")
    ''P415 - JL 03/11/09 - Inicio: Nuevos campos de domicilio
@@ -1157,10 +1149,6 @@ Public Sub INSERTAR_SUPLEMENTO_TCSUPL(ByVal G_POCE2CDDE As String, ByVal G_POCE2
    End If
    ''P415 - JL 03/11/09 - Fin   : Nuevos campos de domicilio
 
-    '''   'SUPLCPUE
-    '''   strSQL = strSQL & ")"
-   
-   'JSS
    strSql = strSql & "," & Grabacion_Importe(Grabar_BBDD(G_Descuentos(0).Valor, "N"), True)
    strSql = strSql & "," & Grabacion_Importe(Grabar_BBDD(G_Descuentos(1).Valor, "N"), True)
    strSql = strSql & "," & Grabacion_Importe(Grabar_BBDD(G_Descuentos(2).Valor, "N"), True)
@@ -1169,7 +1157,6 @@ Public Sub INSERTAR_SUPLEMENTO_TCSUPL(ByVal G_POCE2CDDE As String, ByVal G_POCE2
    strSql = strSql & "," & Grabacion_Importe(Grabar_BBDD(G_Descuentos(5).Valor, "N"), True)
    strSql = strSql & "," & Grabacion_Importe(Grabar_BBDD(G_Descuentos(6).Valor, "N"), True)
    strSql = strSql & "," & Grabacion_Importe(Grabar_BBDD(G_Descuentos(7).Valor, "N"), True)
-   'JSS
    
    strSql = strSql & ",'" & G_SUPLINDVTAC_SUP & "','" & G_SUPLINDPRIC_SUP & "'"
    
@@ -1368,4 +1355,68 @@ Public Function CambioDescuento(aDescuentos1() As SubDescuento, aDescuentos2() A
           End If
         End If
     Next I
+End Function
+
+
+''
+'' mdlSuplementos.bas
+''
+'--------------------------------------------------------------------------------
+' Proyecto       :       SDCERTIF
+' Procedimiento  :       Grabar_BBDD
+' Descripci�n    :       Auxiliar del Sub p�blico INSERTAR_SUPLEMENTO_TCSUPL(). �til para construir
+'                        la cadena de valores a insertar seg�n el tipo definido en la tabla.
+' Modificado por :       MJBF (EXRROFER01)
+' Fecha/Hora     :       03/11/2016 16:25:48
+'
+' Par�metros     :       sValor (String):   Valor como cadena.
+'                        sTipo (String) :   Tipo de la columna en la tabla TCSUPL. ["N" -> Num�rico, "S" -> String]
+'--------------------------------------------------------------------------------
+Private Function Grabar_BBDD(ByVal sValor As String, ByVal sTipo As String) As String
+
+    If sTipo = "N" Then
+        If Trim(sValor) = "" Then
+            Grabar_BBDD = "Null"
+        Else
+            Grabar_BBDD = Trim(sValor)
+        End If
+    Else
+        If Trim(sValor) = "" Then
+            Grabar_BBDD = "Null"
+        Else
+            Grabar_BBDD = "'" & Trim(sValor) & "'"
+        End If
+    End If
+
+End Function
+
+
+''
+'' GenEuro.bas
+''
+Public Function Grabacion_Importe(ByVal vImporte As Variant, ByVal bEuros As Boolean, Optional NumDecimales) As String
+'**************************************************************************************
+'DESCRIPCI�N   :    Convierte un importe a euros para su posterior grabaci�n en Oracle
+'PARAMETROS    :    vImporte    -   El importe a convertir
+'                   bEuros      -   La moneda en la que viene el importe a convertir:
+'                       TRUE    -   Euros
+'                       FALSE   -   Pesetas
+'                   NumDecimales  -     Par�metro Opcional para convertir de pesetas a
+'                                       euros con tantos decimales como tenga el valor
+'                                       NumDecimales.
+'DEVUELVE      :    El importe convertido a euros con el punto como separador decimal
+'**************************************************************************************
+    If CStr(NoNulls(vImporte)) = "" Then vImporte = "0"
+    If CCur(vImporte) <> 0 Then
+        If bEuros Then
+            If IsMissing(NumDecimales) Then NumDecimales = 2
+            Grabacion_Importe = CStr(Replace(Format(CCur(vImporte), "0." & String(Val(NumDecimales), "0")), ",", "."))
+        Else 'Pesetas
+            If IsMissing(NumDecimales) Then NumDecimales = 2
+            Grabacion_Importe = CStr(Replace(Convertir_Importe(Trim$(CStr(vImporte)), bEuros, True, NumDecimales), ",", "."))
+        End If
+    Else
+        Grabacion_Importe = "0"
+    End If
+
 End Function
