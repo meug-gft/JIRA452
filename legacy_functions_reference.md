@@ -58,48 +58,6 @@ WHERE
 
 **Propósito:** Inserta un registro en la tabla `TCMOVI` para auditoría de movimientos de pólizas. Registra cambios realizados en las pólizas con valores antes/después y metadatos del movimiento.
 
-
-### SQL Generada Dinámicamente
-
-La función construye la SQL de forma **DINÁMICA**, añadiendo campos opcionales solo si tienen valor:
-
-#### Versión MÍNIMA (solo campos obligatorios)
-
-Cuando `sCliente` está vacío y ningún campo opcional tiene valor:
-
-```sql
-INSERT INTO TCMOVI(
-    MOVINUME, 
-    MOVITIPO, 
-    MOVICDDE, 
-    MOVIFECH, 
-    MOVINPOL, 
-    MOVICDCE, 
-    MOVIUSUA, 
-    MOVINUSU, 
-    MOVICDCL) 
-VALUES (
-    SQ_MOVIM.NEXTVAL,
-    :tipo,
-    :delegationCode,
-    'YYYYMMDD',
-    12345678,
-    0,
-    'USUARIO',
-    1,
-    NULL)
-```
-
-#### Versión COMPLETA (todos los campos opcionales informados)
-
-Cuando todos los campos opcionales tienen valor:
-
-```sql
-INSERT INTO TCMOVI(MOVINUME, MOVITIPO, MOVICDDE, MOVIFECH, MOVINPOL, MOVICDCE, MOVIUSUA, MOVINUSU, MOVICDCL, MOVIANTE, MOVIDESP, MOVIFECH_EFECTO, MOVITAREA_SGO) 
-VALUES (SQ_MOVIM.NEXTVAL, 'XX', 635, 'YYYYMMDD', 12345678, 0, 'USUARIO', 1, 12345, 'Valor anterior', 'Valor nuevo', 'YYYYMMDD', 'EXP123456')
-```
-
-
 ### Firma
 
 ```vb
@@ -121,18 +79,18 @@ Function GRABAR_MOVIMIENTO(sTipo As String, _
 
 | Parámetro | Tipo | Descripción |
 |-----------|------|-------------|
-| `sTipo` | String | Código del tipo de movimiento (ver constantes G_MOV_*) |
-| `sDelegacion` | String | Código de delegación (635=Salud, 634=Decesos) |
-| `sFecha` | String | Fecha del movimiento en formato YYYYMMDD |
-| `sPoliza` | String | Número de póliza |
-| `sCertificado` | String | Número de certificado |
-| `sUsuario` | String | Usuario que realiza el movimiento |
-| `sSuplemento` | String | Número de suplemento |
-| `sCliente` | String | Código de cliente (puede ser NULL)
-| `sAntes` | String | Valor antes del cambio |
-| `sDespues` | String | Valor después del cambio |
-| `sFecha_Efecto` | String (Opcional) | Fecha de efecto del movimiento en formato YYYYMMDD |
-| `sNumExpSGO` | String (Opcional) | Número de expediente SGO |
+| `movementType` | String | Código del tipo de movimiento (ver constantes G_MOV_*) |
+| `delegationCode` | String | Código de delegación (635=Salud, 634=Decesos) |
+| `policyNumber` | Integer | Número de póliza |
+| `certificateCode` | Integer | Número de certificado |
+| `movementDate` | LocalDate | Fecha del movimiento en formato YYYYMMDD |
+| `user` | String | Usuario que realiza el movimiento |
+| `supplementNumber` | String | Número de suplemento |
+| `clientCode` | String | Código de cliente (puede ser NULL)
+| `beforeValue` | String | Valor antes del cambio |
+| `afterValue` | String | Valor después del cambio |
+| `modifiedAt` | String (Opcional) | Fecha de efecto del movimiento en formato YYYYMMDD |
+| `sgoTask` | Boolean (Opcional) | Número de expediente SGO |
 
 
 ### Constantes de Tipos de Movimiento (G_MOV_*)
@@ -161,25 +119,92 @@ Public Const G_MOV_EMISION_RECIBO As String = "19"
 Public Const G_MOV_ANULACION_RECIBO As String = "20"
 ```
 
+### SQL Generada Dinámicamente
+
+La función construye la SQL de forma **DINÁMICA**, añadiendo campos opcionales solo si tienen valor:
+
+#### Versión MÍNIMA (solo campos obligatorios)
+
+Cuando `sCliente` está vacío y ningún campo opcional tiene valor:
+
+```sql
+INSERT INTO TCMOVI(
+    MOVINUME, 
+    MOVITIPO, 
+    MOVICDDE, 
+    MOVIFECH, 
+    MOVINPOL, 
+    MOVICDCE, 
+    MOVIUSUA, 
+    MOVINUSU, 
+    MOVICDCL) 
+VALUES (
+    SQ_MOVIM.NEXTVAL,
+    :movementType,
+    :delegationCode,
+    :movementDate,
+    :policyNumber,
+    :certificateCode,
+    :user,
+    :supplementNumber,
+    :clientCode)
+```
+
+#### Versión COMPLETA (todos los campos opcionales informados)
+
+Cuando todos los campos opcionales tienen valor:
+
+```sql
+INSERT INTO TCMOVI(
+    MOVINUME,
+    MOVITIPO,
+    MOVICDDE,
+    MOVINPOL,
+    MOVICDCE,
+    MOVIFECH,
+    MOVIUSUA,
+    MOVINUSU,
+    MOVICDCL,
+    MOVIANTE,
+    MOVIDESP,
+    MOVIFECH_EFECTO,
+    MOVITAREA_SGO) 
+VALUES (
+    SQ_MOVIM.NEXTVAL,
+    :movementType,
+    :delegationCode,
+    :policyNumber,
+    :certificateCode,
+    :movementDate,
+    :user,
+    :supplementNumber,
+    :clientCode,
+    :beforeValue,
+    :afterValue,
+    :modifiedAt,
+    :sgoTask)
+```
+
 ### Estructura de Base de Datos
 
 **Tabla:** `TCMOVI`
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
+| `MOVINUME` | NUMBER(9,0) | Secuencia |
 | `MOVITIPO` | VARCHAR2(2) | Tipo de movimiento (G_MOV_*) |
-| `MOVIDELE` | VARCHAR2(3) | Código de delegación |
+| `MOVICDDE` | VARCHAR2(3) | Código de delegación |
+| `MOVINPOL` | NUMBER(9,0) | Número de póliza |
+| `MOVICDCE` | NUMBER(9,0) | Código de certificado |
 | `MOVIFECH` | VARCHAR2(8) | Fecha del movimiento (YYYYMMDD) |
-| `MOVIPOLI` | VARCHAR2(10) | Número de póliza |
-| `MOVICERT` | VARCHAR2(5) | Número de certificado |
 | `MOVIUSUA` | VARCHAR2(10) | Usuario que realiza el movimiento |
-| `MOVISUPL` | VARCHAR2(3) | Número de suplemento |
-| `MOVICLIE` | VARCHAR2(10) | Código de cliente |
+| `MOVINUSU` | VARCHAR2(3) | Número de suplemento |
+| `MOVICDCL` | VARCHAR2(10) | Código de cliente |
 | `MOVIANTE` | VARCHAR2(200) | Valor antes del cambio |
 | `MOVIDESP` | VARCHAR2(200) | Valor después del cambio |
-| `MOVIFEFE` | VARCHAR2(8) | Fecha de efecto (YYYYMMDD) |
-| `MOVIEXPS` | VARCHAR2(15) | Número de expediente SGO |
-| `MOVIFGRA` | DATE | Fecha/hora de grabación (SYSDATE) |
+| `MOVIFECH_EFECTO` | VARCHAR2(8) | Fecha de efecto (YYYYMMDD) |
+| `MOVITAREA_SGO` | VARCHAR2(15) | Número de expediente SGO |
+| `MOVI_REGU_ANTICIPO` | VARCHAR2(1) | Marca si se debe insertar un apunte para regularizar el anticipo (S/N) |
 
 ### Código VB6 Original
 
@@ -704,7 +729,7 @@ ihstmt = SQL_COMMIT(G_HDBC)
 
 Todas las operaciones anteriores (INSERT TCSUPL, INSERT TSSUPC, UPDATE DTPOLI, DELETE TMPROR) se confirman en una única transacción.
 
-#### Integración con BDI
+### Integración con BDI
 
 ```vb
 ' Integración con BDI
