@@ -703,6 +703,8 @@ WHERE POLICDDE = :codigoDelegacion
 Call PMS_BORRA_TMPROR(G_POLINPOL, "0")
 ```
 
+PMS_BORRA_TMPROR lo unic q fa es cridar a una de estes en Database Navigator: Conexión → Schemas → SCOTT → Packages → busca PCK_TARPRO
+
 Esta llamada elimina los registros temporales de prorrateo de la tabla `TMPROR` para la póliza procesada.
 
 #### Confirmación de Transacción
