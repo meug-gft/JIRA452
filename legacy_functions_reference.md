@@ -134,12 +134,6 @@ Function GRABAR_MOVIMIENTO(sTipo As String, _
 | `sFecha_Efecto` | String (Opcional) | Fecha de efecto del movimiento en formato YYYYMMDD |
 | `sNumExpSGO` | String (Opcional) | Número de expediente SGO |
 
-### Retorno
-
-| Valor | Significado |
-|-------|-------------|
-| `0` | Movimiento grabado correctamente |
-| `-1` | Error al grabar el movimiento |
 
 ### Constantes de Tipos de Movimiento (G_MOV_*)
 
@@ -273,235 +267,6 @@ End Function
 5. **Manejo de errores**: Captura errores sin interrumpir el flujo principal de la aplicación
 
 
-### Equivalente Java Propuesto
-
-```java
-// Entidad JPA
-@Entity
-@Table(name = "TCMOVI")
-public class MovementAuditEntity {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "movi_seq")
-    @SequenceGenerator(name = "movi_seq", sequenceName = "TCMOVI_SEQ", allocationSize = 1)
-    private Long id;
-    
-    @Column(name = "MOVITIPO", length = 2, nullable = false)
-    private String movementType;
-    
-    @Column(name = "MOVIDELE", length = 3, nullable = false)
-    private String delegationCode;
-    
-    @Column(name = "MOVIFECH", length = 8, nullable = false)
-    private String movementDate;
-    
-    @Column(name = "MOVIPOLI", length = 10, nullable = false)
-    private String policyNumber;
-    
-    @Column(name = "MOVICERT", length = 5, nullable = false)
-    private String certificateNumber;
-    
-    @Column(name = "MOVIUSUA", length = 10, nullable = false)
-    private String userId;
-    
-    @Column(name = "MOVISUPL", length = 3, nullable = false)
-    private String supplementNumber;
-    
-    @Column(name = "MOVICLIE", length = 10)
-    private String clientCode;
-    
-    @Column(name = "MOVIANTE", length = 200)
-    private String valueBefore;
-    
-    @Column(name = "MOVIDESP", length = 200)
-    private String valueAfter;
-    
-    @Column(name = "MOVIFEFE", length = 8)
-    private String effectiveDate;
-    
-    @Column(name = "MOVIEXPS", length = 15)
-    private String sgoExpedientNumber;
-    
-    @Column(name = "MOVIFGRA", nullable = false)
-    @CreationTimestamp
-    private LocalDateTime recordDate;
-}
-
-// Enum para tipos de movimiento
-public enum MovementType {
-    ALTA_POLIZA("01", "Alta de póliza"),
-    BAJA_POLIZA("02", "Baja de póliza"),
-    MODIFICACION_POLIZA("03", "Modificación de póliza"),
-    SUPLEMENTO("04", "Suplemento"),
-    ANULACION("05", "Anulación"),
-    REHABILITACION("06", "Rehabilitación"),
-    CAMBIO_TOMADOR("07", "Cambio de tomador"),
-    CAMBIO_AGENTE("08", "Cambio de agente"),
-    CAMBIO_DOMICILIO("09", "Cambio de domicilio"),
-    CAMBIO_FORMA_PAGO("10", "Cambio de forma de pago"),
-    CAMBIO_CUENTA("11", "Cambio de cuenta"),
-    ALTA_ASEGURADO("12", "Alta de asegurado"),
-    BAJA_ASEGURADO("13", "Baja de asegurado"),
-    MODIFICACION_ASEGURADO("14", "Modificación de asegurado"),
-    CAMBIO_COBERTURA("15", "Cambio de cobertura"),
-    CAMBIO_TARIFA("16", "Cambio de tarifa"),
-    CAMBIO_DESCUENTO("17", "Cambio de descuento"),
-    RENOVACION("18", "Renovación"),
-    EMISION_RECIBO("19", "Emisión de recibo"),
-    ANULACION_RECIBO("20", "Anulación de recibo");
-    
-    private final String code;
-    private final String description;
-    
-    MovementType(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
-    
-    public String getCode() {
-        return code;
-    }
-    
-    public String getDescription() {
-        return description;
-    }
-    
-    public static MovementType fromCode(String code) {
-        for (MovementType type : values()) {
-            if (type.code.equals(code)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Unknown movement type code: " + code);
-    }
-}
-
-// DTO de request
-@Data
-@Builder
-public class MovementAuditRequest {
-    @NotNull
-    private MovementType movementType;
-    
-    @NotBlank
-    @Size(max = 3)
-    private String delegationCode;
-    
-    @NotBlank
-    @Pattern(regexp = "\\d{8}", message = "Date must be in YYYYMMDD format")
-    private String movementDate;
-    
-    @NotBlank
-    @Size(max = 10)
-    private String policyNumber;
-    
-    @NotBlank
-    @Size(max = 5)
-    private String certificateNumber;
-    
-    @NotBlank
-    @Size(max = 10)
-    private String userId;
-    
-    @NotBlank
-    @Size(max = 3)
-    private String supplementNumber;
-    
-    @Size(max = 10)
-    private String clientCode;
-    
-    @Size(max = 200)
-    private String valueBefore;
-    
-    @Size(max = 200)
-    private String valueAfter;
-    
-    @Pattern(regexp = "\\d{8}", message = "Effective date must be in YYYYMMDD format")
-    private String effectiveDate;
-    
-    @Size(max = 15)
-    private String sgoExpedientNumber;
-}
-
-// Repository
-@Repository
-public interface MovementAuditRepository extends JpaRepository<MovementAuditEntity, Long> {
-    
-    List<MovementAuditEntity> findByPolicyNumberAndCertificateNumberOrderByRecordDateDesc(
-        String policyNumber, String certificateNumber);
-    
-    List<MovementAuditEntity> findByPolicyNumberAndMovementTypeOrderByRecordDateDesc(
-        String policyNumber, String movementType);
-}
-
-// Service
-@Service
-@Slf4j
-public class MovementAuditService {
-    
-    private final MovementAuditRepository repository;
-    
-    public MovementAuditService(MovementAuditRepository repository) {
-        this.repository = repository;
-    }
-    
-    /**
-     * Records a policy movement for audit purposes.
-     * Equivalent to VB6 GRABAR_MOVIMIENTO function.
-     *
-     * @param request Movement audit data
-     * @return true if recorded successfully, false otherwise
-     */
-    @Transactional
-    public boolean recordMovement(MovementAuditRequest request) {
-        try {
-            MovementAuditEntity entity = MovementAuditEntity.builder()
-                .movementType(request.getMovementType().getCode())
-                .delegationCode(request.getDelegationCode())
-                .movementDate(request.getMovementDate())
-                .policyNumber(request.getPolicyNumber())
-                .certificateNumber(request.getCertificateNumber())
-                .userId(request.getUserId())
-                .supplementNumber(request.getSupplementNumber())
-                .clientCode(StringUtils.hasText(request.getClientCode()) 
-                    ? request.getClientCode() : null)
-                .valueBefore(truncateToMaxLength(request.getValueBefore(), 200))
-                .valueAfter(truncateToMaxLength(request.getValueAfter(), 200))
-                .effectiveDate(StringUtils.hasText(request.getEffectiveDate()) 
-                    ? request.getEffectiveDate() : null)
-                .sgoExpedientNumber(StringUtils.hasText(request.getSgoExpedientNumber()) 
-                    ? request.getSgoExpedientNumber() : null)
-                .build();
-            
-            repository.save(entity);
-            
-            log.info("Movement recorded: type={}, policy={}, certificate={}, user={}",
-                request.getMovementType().getCode(),
-                request.getPolicyNumber(),
-                request.getCertificateNumber(),
-                request.getUserId());
-            
-            return true;
-            
-        } catch (Exception e) {
-            log.error("Error recording movement for policy {}: {}", 
-                request.getPolicyNumber(), e.getMessage(), e);
-            return false;
-        }
-    }
-    
-    private String truncateToMaxLength(String value, int maxLength) {
-        if (value == null) {
-            return null;
-        }
-        String trimmed = value.trim();
-        return trimmed.length() > maxLength 
-            ? trimmed.substring(0, maxLength) 
-            : trimmed;
-    }
-}
-```
-
 ### Notas de Migración
 
 1. **Formato de fechas**: El código legacy usa formato `YYYYMMDD` como String. Considerar migrar a `LocalDate` en el modelo interno y convertir solo para persistencia si la tabla no se puede modificar.
@@ -527,6 +292,165 @@ public class MovementAuditService {
 **Módulo:** `mdlSuplementos.bas`
 
 **Propósito:** Inserta un registro de suplemento en la tabla TCSUPL con todos los datos históricos de una póliza/certificado. Construye dinámicamente el INSERT según si hay datos de domicilio nuevos o antiguos. Delega en INSERTAR_SUPLEMENTO_TSSUPC para las cláusulas asociadas.
+
+
+### SQL Generada Dinámicamente
+
+La función construye la SQL de forma **DINÁMICA**, con dos variantes según el formato del domicilio:
+
+#### Estructura General de la Query INSERT INTO TCSUPL
+
+```sql
+INSERT INTO TCSUPL (
+  -- Campos de identificación (4 campos)
+  SUPLCDDE, SUPLNPOL, SUPLCDCE, SUPLNUSU,
+  
+  -- Campos de tipo y estado (11 campos)
+  SUPLTIPO, SUPLSITP, SUPLSITC, SUPLFECA, SUPLFECB, SUPLFECC,
+  SUPLFEBA, SUPLCDPT, SUPLCDTA, SUPLFOPA, SUPLTIPA,
+  
+  -- Campos de personas y referencias (9 campos)
+  SUPLNUPE, SUPLIDCP, SUPLIDCO, SUPLCDTR, SUPLIDEX,
+  SUPLCOBR, SUPLAGTA, SUPLAGTB, SUPLINSP,
+  
+  -- Campos de primas e importes (10 campos)
+  SUPLPRNT, SUPLPRNE, SUPLRECA, SUPLRECE, SUPLIMPT, SUPLIMPE,
+  SUPLTORE, SUPLMOCE, SUPLCDPS, SUPLCDPO,
+  
+  -- Campos adicionales de importes (14 campos)
+  SUPLTFNO_NUTE, SUPLCRNT, SUPLCRNE, SUPLCECA, SUPLCECE,
+  SUPLCMPT, SUPLCMPE, SUPLCORE, SUPLIPUN, SUPLIPUE,
+  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE,
+  
+  -- Campos de referencia (2 campos)
+  SUPLCDRP, SUPLCDPC,
+  
+  -- Campos P207 - provincia y switches (7 campos)
+  SUPLPROVINCIA_TARIFICACION, SUPLSWPROVINCIA, SUPLSWPRODUCCION,
+  SUPLSWTARIFA, SUPLSWDCTO, SUPLDCTONUMPERSONAS, SUPLRECFORMAPAGO,
+  
+  -- Campos de adaptación (2 campos)
+  SUPLADAP, SUPLTERRITORIALIDAD,
+  
+  -- Campos de domicilio (1 o 11 campos según formato)
+  -- Si formato antiguo: SUP_NOMBREVIA
+  -- Si formato normalizado: SUP_CDG_TIPOVIA, SUP_NOMBREVIA, SUP_NUMEROVIA,
+  --                        SUP_PORTAL, SUP_BLOQUE, SUP_ESCALERA,
+  --                        SUP_PISO, SUP_PUERTA, SUP_RESTOVIA,
+  --                        SUP_CPOBLA_INE, SUP_CVIA_INE
+  
+  -- Campos de descuento - 8 grupos
+  SUPLDESC_G01, SUPLDESC_G02, SUPLDESC_G03, SUPLDESC_G04,
+  SUPLDESC_G05, SUPLDESC_G06, SUPLDESC_G07, SUPLDESC_G08,
+  
+  -- Indicadores (2 campos)
+  SUPLINDVTAC, SUPLINDPRIC
+) VALUES (...)
+```
+
+#### Versión MÍNIMA (domicilio en formato antiguo - sin "#")
+
+Cuando `G_POCE2DOMI` **NO contiene** el carácter `#`, se considera formato antiguo y solo se graba `SUP_NOMBREVIA`:
+
+```sql
+INSERT INTO TCSUPL (
+  SUPLCDDE, SUPLNPOL, SUPLCDCE, SUPLNUSU,
+  SUPLTIPO, SUPLSITP, SUPLSITC, SUPLFECA, SUPLFECB, SUPLFECC,
+  SUPLFEBA, SUPLCDPT, SUPLCDTA, SUPLFOPA, SUPLTIPA,
+  SUPLNUPE, SUPLIDCP, SUPLIDCO, SUPLCDTR, SUPLIDEX,
+  SUPLCOBR, SUPLAGTA, SUPLAGTB, SUPLINSP,
+  SUPLPRNT, SUPLPRNE, SUPLRECA, SUPLRECE, SUPLIMPT, SUPLIMPE,
+  SUPLTORE, SUPLMOCE, SUPLCDPS, SUPLCDPO,
+  SUPLTFNO_NUTE, SUPLCRNT, SUPLCRNE, SUPLCECA, SUPLCECE,
+  SUPLCMPT, SUPLCMPE, SUPLCORE, SUPLIPUN, SUPLIPUE,
+  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE, SUPLCDRP, SUPLCDPC,
+  SUPLPROVINCIA_TARIFICACION, SUPLSWPROVINCIA, SUPLSWPRODUCCION,
+  SUPLSWTARIFA, SUPLSWDCTO, SUPLDCTONUMPERSONAS, SUPLRECFORMAPAGO,
+  SUPLADAP, SUPLTERRITORIALIDAD,
+  SUP_NOMBREVIA,  -- Solo este campo de domicilio
+  SUPLDESC_G01, SUPLDESC_G02, SUPLDESC_G03, SUPLDESC_G04,
+  SUPLDESC_G05, SUPLDESC_G06, SUPLDESC_G07, SUPLDESC_G08,
+  SUPLINDVTAC, SUPLINDPRIC
+) VALUES (
+  635, 12345678, 0, 1,
+  '03', 'A', 'A', '20241115', '20240101', '20240101',
+  NULL, 100, 'T01', 'M', 'D',
+  2, 'X1234567A', 'Y9876543B', '01', 'S',
+  'S', 'AG001', 'AG002', 'S',
+  1200.50, 0, 120.05, 0, 252.11, 0,
+  1572.66, 'S', '28001', '28',
+  '912345678', 0, 0, 0, 0,
+  0, 0, 0, 0, 0,
+  0, 0, NULL, 0, 0, 0,
+  '28', 'S', 'S',
+  'N', 'N', 0, 0,
+  'A', 'N',
+  'CALLE GRAN VIA 123, 5º B',  -- Dirección completa en formato antiguo
+  10.00, 5.00, 0, 0, 0, 0, 0, 0,
+  'S', 'N'
+)
+```
+
+#### Versión COMPLETA (domicilio normalizado - con "#")
+
+Cuando `G_POCE2DOMI` **contiene** el carácter `#`, se parsean los 11 campos de domicilio normalizado:
+
+```sql
+INSERT INTO TCSUPL (
+  SUPLCDDE, SUPLNPOL, SUPLCDCE, SUPLNUSU,
+  SUPLTIPO, SUPLSITP, SUPLSITC, SUPLFECA, SUPLFECB, SUPLFECC,
+  SUPLFEBA, SUPLCDPT, SUPLCDTA, SUPLFOPA, SUPLTIPA,
+  SUPLNUPE, SUPLIDCP, SUPLIDCO, SUPLCDTR, SUPLIDEX,
+  SUPLCOBR, SUPLAGTA, SUPLAGTB, SUPLINSP,
+  SUPLPRNT, SUPLPRNE, SUPLRECA, SUPLRECE, SUPLIMPT, SUPLIMPE,
+  SUPLTORE, SUPLMOCE, SUPLCDPS, SUPLCDPO,
+  SUPLTFNO_NUTE, SUPLCRNT, SUPLCRNE, SUPLCECA, SUPLCECE,
+  SUPLCMPT, SUPLCMPE, SUPLCORE, SUPLIPUN, SUPLIPUE,
+  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE, SUPLCDRP, SUPLCDPC,
+  SUPLPROVINCIA_TARIFICACION, SUPLSWPROVINCIA, SUPLSWPRODUCCION,
+  SUPLSWTARIFA, SUPLSWDCTO, SUPLDCTONUMPERSONAS, SUPLRECFORMAPAGO,
+  SUPLADAP, SUPLTERRITORIALIDAD,
+  -- 11 campos de domicilio normalizado
+  SUP_CDG_TIPOVIA, SUP_NOMBREVIA, SUP_NUMEROVIA,
+  SUP_PORTAL, SUP_BLOQUE, SUP_ESCALERA,
+  SUP_PISO, SUP_PUERTA, SUP_RESTOVIA,
+  SUP_CPOBLA_INE, SUP_CVIA_INE,
+  -- Descuentos e indicadores
+  SUPLDESC_G01, SUPLDESC_G02, SUPLDESC_G03, SUPLDESC_G04,
+  SUPLDESC_G05, SUPLDESC_G06, SUPLDESC_G07, SUPLDESC_G08,
+  SUPLINDVTAC, SUPLINDPRIC
+) VALUES (
+  635, 12345678, 1, 5,
+  '03', 'A', 'A', '20241115', '20240101', '20240101',
+  NULL, 100, 'T01', 'M', 'D',
+  2, 'X1234567A', 'Y9876543B', '01', 'S',
+  'S', 'AG001', 'AG002', 'S',
+  1200.50, 0, 120.05, 0, 252.11, 0,
+  1572.66, 'S', '28001', '28',
+  '912345678', 0, 0, 0, 0,
+  0, 0, 0, 0, 0,
+  0, 0, NULL, 0, 0, 0,
+  '28', 'S', 'S',
+  'N', 'N', 0, 0,
+  'A', 'N',
+  -- Domicilio normalizado (11 campos)
+  'CL',           -- SUP_CDG_TIPOVIA (código tipo vía)
+  'GRAN VIA',     -- SUP_NOMBREVIA
+  '123',          -- SUP_NUMEROVIA
+  '',             -- SUP_PORTAL
+  '',             -- SUP_BLOQUE
+  'A',            -- SUP_ESCALERA
+  '5',            -- SUP_PISO
+  'B',            -- SUP_PUERTA
+  '',             -- SUP_RESTOVIA (resto dirección)
+  '2807901',      -- SUP_CPOBLA_INE (código población INE)
+  '280790100123', -- SUP_CVIA_INE (código vía INE)
+  -- Descuentos G01-G08
+  10.00, 5.00, 0, 0, 0, 0, 0, 0,
+  -- Indicadores
+  'S', 'N'
+)
+```
 
 ### Firma
 
@@ -578,10 +502,6 @@ Public Sub INSERTAR_SUPLEMENTO_TCSUPL(ByVal G_POCE2CDDE As String, ByVal G_POCE2
 | `G_Descuentos()` | SubDescuento | Array con 8 grupos de descuento (G01-G08) |
 | `G_POCEFECM` | String (ByRef) | Fecha de modificación (retornado) |
 | `strSuplemento_DTSUAS` | String (ByRef) | Número de suplemento generado (retornado) |
-
-### Retorno
-
-No retorna valor (Sub). Los valores de salida se devuelven por referencia en `G_POCEFECM` y `strSuplemento_DTSUAS`.
 
 ### Estructura de Base de Datos
 
@@ -809,203 +729,6 @@ End If
 3. **Limpieza de temporales**: Los datos de prorrateo en `TMPROR` son específicos de la sesión/operación y deben eliminarse
 4. **Atomicidad**: Si alguna operación falla, todas deben revertirse para evitar inconsistencias
 
-### Equivalente Java Propuesto
-
-```java
-// DTO de request para creación de suplemento
-@Data
-@Builder
-public class SupplementCreateRequest {
-    @NotBlank
-    private String delegationCode;
-    
-    @NotBlank
-    private String policyNumber;
-    
-    @NotBlank
-    private String certificateCode;
-    
-    @NotBlank
-    private String supplementNumber;
-    
-    @NotBlank
-    @Pattern(regexp = "01|02|03", message = "Entity type must be 01, 02, or 03")
-    private String entityType;
-    
-    private String previousStatus;
-    private String currentStatus;
-    
-    private LocalDate effectDateB;
-    private LocalDate effectDateA;
-    private LocalDate terminationDate;
-    
-    private String productCode;
-    private String tariffCode;
-    private String paymentMethod;
-    private String paymentType;
-    private Integer insuredCount;
-    
-    // Premium amounts
-    private BigDecimal netPremiumTotal;
-    private BigDecimal netPremiumForeign;
-    private BigDecimal surchargeTotal;
-    private BigDecimal surchargeForeign;
-    private BigDecimal taxTotal;
-    private BigDecimal taxForeign;
-    private BigDecimal totalAnnualReceipt;
-    
-    // Address - can be normalized or legacy format
-    private AddressDto address;
-    
-    // Discount groups (G01-G08)
-    private List<BigDecimal> discountGroups;
-    
-    // Indicators
-    private String crossSellIndicator;
-    private String pricingIndicator;
-    
-    // Rating province
-    private String ratingProvinceCode;
-}
-
-// DTO para dirección normalizada
-@Data
-@Builder
-public class AddressDto {
-    private String streetTypeCode;
-    private String streetName;
-    private String streetNumber;
-    private String portal;
-    private String block;
-    private String staircase;
-    private String floor;
-    private String door;
-    private String additionalInfo;
-    private String ineCityCode;
-    private String ineStreetCode;
-    private String postalCode;
-    private String populationCode;
-}
-
-// Service para creación de suplementos
-@Service
-@Slf4j
-@Transactional
-public class SupplementCreationService {
-    
-    private final SupplementRepository supplementRepository;
-    private final SupplementClauseRepository clauseRepository;
-    private final SupplementMapper supplementMapper;
-    
-    public SupplementCreationService(SupplementRepository supplementRepository,
-                                     SupplementClauseRepository clauseRepository,
-                                     SupplementMapper supplementMapper) {
-        this.supplementRepository = supplementRepository;
-        this.clauseRepository = clauseRepository;
-        this.supplementMapper = supplementMapper;
-    }
-    
-    /**
-     * Creates a supplement record in TCSUPL with all historical data.
-     * Equivalent to VB6 INSERTAR_SUPLEMENTO_TCSUPL function.
-     *
-     * @param request Supplement creation data
-     * @param clauseData Pre-loaded clause data (equivalent to MAT_TSPOPC)
-     * @param adaptationValue Value from G_SUPLADAP_SUP
-     * @param territorialityValue Value from G_SUPLTERRITORIALIDAD_SUP
-     * @return Created supplement number
-     */
-    public String createSupplement(SupplementCreateRequest request,
-                                   List<ClauseData> clauseData,
-                                   String adaptationValue,
-                                   String territorialityValue) {
-        
-        log.info("Creating supplement for policy {}, certificate {}",
-            request.getPolicyNumber(), request.getCertificateCode());
-        
-        // Build entity from request
-        SupplementEntity entity = supplementMapper.toEntity(request);
-        
-        // Set creation date (equivalent to Format(Now, "YYYYMMDD"))
-        entity.setCreationDate(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
-        
-        // Set adaptation and territoriality values
-        entity.setAdaptationValue(adaptationValue);
-        entity.setTerritorialityValue(territorialityValue);
-        
-        // Set discount groups (G01-G08)
-        if (request.getDiscountGroups() != null && request.getDiscountGroups().size() == 8) {
-            entity.setDiscountG01(request.getDiscountGroups().get(0));
-            entity.setDiscountG02(request.getDiscountGroups().get(1));
-            entity.setDiscountG03(request.getDiscountGroups().get(2));
-            entity.setDiscountG04(request.getDiscountGroups().get(3));
-            entity.setDiscountG05(request.getDiscountGroups().get(4));
-            entity.setDiscountG06(request.getDiscountGroups().get(5));
-            entity.setDiscountG07(request.getDiscountGroups().get(6));
-            entity.setDiscountG08(request.getDiscountGroups().get(7));
-        }
-        
-        // Save main supplement record
-        supplementRepository.save(entity);
-        
-        // Insert clauses if NOT collective policy (G_CER <> "02")
-        if (!"02".equals(request.getEntityType())) {
-            insertSupplementClauses(
-                request.getPolicyNumber(),
-                request.getCertificateCode(),
-                request.getSupplementNumber(),
-                clauseData
-            );
-        }
-        
-        log.info("Supplement {} created successfully", request.getSupplementNumber());
-        
-        return request.getSupplementNumber();
-    }
-    
-    /**
-     * Inserts clause records in TSSUPC.
-     * Equivalent to VB6 INSERTAR_SUPLEMENTO_TSSUPC function.
-     */
-    private void insertSupplementClauses(String policyNumber,
-                                         String certificateCode,
-                                         String supplementNumber,
-                                         List<ClauseData> clauseData) {
-        for (ClauseData clause : clauseData) {
-            if (clause.getClauseCode() != null && !clause.getClauseCode().isEmpty()) {
-                SupplementClauseEntity clauseEntity = SupplementClauseEntity.builder()
-                    .policyNumber(policyNumber)
-                    .certificateCode(certificateCode)
-                    .supplementNumber(supplementNumber)
-                    .clauseCode(clause.getClauseCode())
-                    .relationCode(clause.getRelationCode())
-                    .coverageType(clause.getCoverageType())
-                    .premiumAmount(clause.getPremiumAmount())
-                    .startDate(clause.getStartDate())
-                    .endDate(clause.getEndDate())
-                    .previousAmount(clause.getPreviousAmount())
-                    .previousDate(clause.getPreviousDate())
-                    .receiptWithoutDiscount(clause.getReceiptWithoutDiscount())
-                    .premiumWithoutDiscount(clause.getPremiumWithoutDiscount())
-                    .tariffDate(clause.getTariffDate())
-                    .build();
-                
-                clauseRepository.save(clauseEntity);
-            }
-        }
-    }
-}
-
-// Repository usando la entidad existente SupplementEntity
-@Repository
-public interface SupplementRepository extends JpaRepository<SupplementEntity, SupplementPK> {
-    
-    List<SupplementEntity> findByPolicyNumberOrderBySupplementNumberDesc(Integer policyNumber);
-    
-    Optional<SupplementEntity> findFirstByPolicyNumberAndCertificateCodeOrderBySupplementNumberDesc(
-        Integer policyNumber, Integer certificateCode);
-}
-```
 
 ### Notas de Migración
 
