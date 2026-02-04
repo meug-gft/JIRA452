@@ -90,7 +90,7 @@ Function GRABAR_MOVIMIENTO(sTipo As String, _
 | `beforeValue` | String | Valor antes del cambio |
 | `afterValue` | String | Valor después del cambio |
 | `modifiedAt` | String (Opcional) | Fecha de efecto del movimiento en formato YYYYMMDD |
-| `sgoTask` | Boolean (Opcional) | Número de expediente SGO |
+| `sgoTask` | Long (Opcional) | Número de expediente SGO |
 
 
 ### Constantes de Tipos de Movimiento (G_MOV_*)
