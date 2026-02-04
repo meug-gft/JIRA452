@@ -115,47 +115,18 @@ Function PMF_ERROR(CODERROR As String, Optional Incluir As String) As Integer
 | `CODERROR` | String | Código del error a buscar (ej: "GEI024") |
 | `Incluir` | String (Opcional) | Texto adicional a concatenar al mensaje |
 
-### Retorno
 
-| Valor | Significado |
-|-------|-------------|
-| `6` | Tecla OK o Sí pulsada |
-| `7` | Tecla No pulsada |
-| Otros | Código de tecla según `MsgBox` de VB6 |
-
-### Estructura de Base de Datos
-
-**Tabla:** `DTMERR`
-
-| Campo | Descripción |
-|-------|-------------|
-| `MERRCDER` | Código del error (clave de búsqueda) |
-| `MERRDSER` | Descripción del mensaje (máx 70 caracteres) |
-| `MERRCDTE` | Tipo de error (determina icono y botones del MsgBox) |
-| `MERRDSCT` | Título del mensaje |
-
-### Lógica Resumida
-
-1. **Consulta a BD**: Busca en `DTMERR` el registro con `MERRCDER = CODERROR`
-2. **Extrae datos**:
-   - `M_DESCRIPCION`: Mensaje a mostrar (70 chars)
-   - `M_TIPOERROR`: Tipo de mensaje (icono/botones)
-   - `M_MENSAJE`: Título de la ventana (35 chars)
-3. **Muestra MsgBox**: Con la descripción + texto opcional (`Incluir`)
-4. **Normaliza respuesta**: Si se pulsa OK (1), lo convierte a 6 (igual que Sí)
-5. **Modo lectura**: Si `G_TIPOACC = "R"`, muestra aviso adicional de "LOS CAMBIOS NO TENDRAN EFECTO"
-6. **Retorna**: Código de tecla pulsada
-
-### Códigos de Error Conocidos
-
-| Código | Uso Típico |
-|--------|------------|
-| `GEI024` | Campo obligatorio vacío / Fecha vacía |
-| `GEI005` | Fecha incorrecta |
-| `BAI001` | Código no encontrado en tabla |
-| `CLI001` | Confirmación de guardar cambios |
-| `CLI002` | No se encontraron registros |
-| `CAI002` | Código no existe |
+### Query lanzada
+```sql
+SELECT 
+        MERRCDER as errorCode, 
+        MERRDSER as errorDescription, 
+        MERRCDTE as errorTypeCode, 
+        MERRDSCT as shortDescription 
+    FROM DTMERR 
+    WHERE
+        MERRCDER = :errorCode
+```
 
 ### Ejemplo de Uso
 
