@@ -125,8 +125,6 @@ La función construye la SQL de forma **DINÁMICA**, añadiendo campos opcionale
 
 #### Versión MÍNIMA (solo campos obligatorios)
 
-Cuando `sCliente` está vacío y ningún campo opcional tiene valor:
-
 ```sql
 INSERT INTO TCMOVI(
     MOVINUME, 
@@ -206,110 +204,100 @@ VALUES (
 | `MOVITAREA_SGO` | VARCHAR2(15) | Número de expediente SGO |
 | `MOVI_REGU_ANTICIPO` | VARCHAR2(1) | Marca si se debe insertar un apunte para regularizar el anticipo (S/N) |
 
-### Código VB6 Original
+### Código VB6 Reorganizado.
 
 ```vb
-Function GRABAR_MOVIMIENTO(sTipo As String, _
-                           sDelegacion As String, _
-                           sFecha As String, _
-                           sPoliza As String, _
-                           sCertificado As String, _
-                           sUsuario As String, _
-                           sSuplemento As String, _
-                           sCliente As String, _
-                           sAntes As String, _
-                           sDespues As String, _
-                           Optional sFecha_Efecto As String, _
-                           Optional sNumExpSGO As String) As Integer
+Public Sub GRABAR_MOVIMIENTO(
+    sTipo As String,
+    sDelegacion As String,
+    sFecha As String,
+    sPoliza As String,
+    sCertificado As String,
+    sUsuario As String,
+    sSuplemento As String,
+    sCliente As String,
+    sAntes As String,
+    sDespues As String,
+    Optional sFecha_Efecto = "",
+    Optional sNumExpSGO As String = "")
+    'Procedimiento que inserta un registro en la tabla TCMOVI.
+
+    Dim Stat As String
+    Dim sql_Fields As String
+    Dim sql_Values As String
     
-    On Error GoTo ErrorHandler
+    Dim HSTMT As Long
+    Dim ENDCODE As Integer
     
-    Dim sSQL As String
-    Dim sClienteSQL As String
-    Dim sFechaEfectoSQL As String
-    Dim sNumExpSQL As String
+    sql_Fields = ""
+    sql_Fields = "MOVINUME,"
+    sql_Fields = sql_Fields & " MOVITIPO,"
+    sql_Fields = sql_Fields & " MOVICDDE,"
+    sql_Fields = sql_Fields & " MOVIFECH,"
+    sql_Fields = sql_Fields & " MOVINPOL,"
+    sql_Fields = sql_Fields & " MOVICDCE,"
+    sql_Fields = sql_Fields & " MOVIUSUA,"
+    sql_Fields = sql_Fields & " MOVINUSU,"
+    sql_Fields = sql_Fields & " MOVICDCL"
     
-    ' Tratar valores NULL
+    sql_Values = ""
+    sql_Values = "SQ_MOVIM.NEXTVAL,"
+    sql_Values = sql_Values & "'" & Trim(sTipo) & "',"
+    sql_Values = sql_Values & Trim(sDelegacion) & ","
+    sql_Values = sql_Values & "'" & Trim(sFecha) & "',"
+    sql_Values = sql_Values & Trim(sPoliza) & ","
+    sql_Values = sql_Values & Trim(sCertificado) & ","
+    sql_Values = sql_Values & "'" & Trim(sUsuario) & "',"
+    sql_Values = sql_Values & Trim(sSuplemento) & ","
+
     If Trim(sCliente) = "" Then
-        sClienteSQL = "NULL"
+      sql_Values = sql_Values & "NULL"
     Else
-        sClienteSQL = "'" & sCliente & "'"
+      sql_Values = sql_Values & Trim(sCliente)
     End If
     
-    If IsMissing(sFecha_Efecto) Or Trim(sFecha_Efecto) = "" Then
-        sFechaEfectoSQL = "NULL"
-    Else
-        sFechaEfectoSQL = "'" & sFecha_Efecto & "'"
+    If UCase(sAntes) <> "NULL" And NoNulls(sAntes) <> "" Then
+        sql_Fields = sql_Fields & ", MOVIANTE"
+        sql_Values = sql_Values & ",'" & Trim(sAntes) & "'"
     End If
     
-    If IsMissing(sNumExpSGO) Or Trim(sNumExpSGO) = "" Then
-        sNumExpSQL = "NULL"
-    Else
-        sNumExpSQL = "'" & sNumExpSGO & "'"
+    If UCase(sDespues) <> "NULL" And NoNulls(sDespues) <> "" Then
+        sql_Fields = sql_Fields & ", MOVIDESP"
+        sql_Values = sql_Values & ",'" & Trim(sDespues) & "'"
     End If
     
-    ' Truncar valores si exceden longitud máxima
-    sAntes = Left(Trim(sAntes), 200)
-    sDespues = Left(Trim(sDespues), 200)
+    If NoNulls(sFecha_Efecto) <> "" Then
+        sql_Fields = sql_Fields & ", MOVIFECH_EFECTO"
+        sql_Values = sql_Values & ",'" & Trim(sFecha_Efecto) & "'"
+    End If
     
-    sSQL = "INSERT INTO TCMOVI " & _
-           "(MOVITIPO, MOVIDELE, MOVIFECH, MOVIPOLI, MOVICERT, " & _
-           "MOVIUSUA, MOVISUPL, MOVICLIE, MOVIANTE, MOVIDESP, " & _
-           "MOVIFEFE, MOVIEXPS, MOVIFGRA) " & _
-           "VALUES (" & _
-           "'" & sTipo & "', " & _
-           "'" & sDelegacion & "', " & _
-           "'" & sFecha & "', " & _
-           "'" & sPoliza & "', " & _
-           "'" & sCertificado & "', " & _
-           "'" & sUsuario & "', " & _
-           "'" & sSuplemento & "', " & _
-           sClienteSQL & ", " & _
-           "'" & Replace(sAntes, "'", "''") & "', " & _
-           "'" & Replace(sDespues, "'", "''") & "', " & _
-           sFechaEfectoSQL & ", " & _
-           sNumExpSQL & ", " & _
-           "SYSDATE)"
+    If NoNulls(sNumExpSGO) <> "" Then
+        sql_Fields = sql_Fields & ", MOVITAREA_SGO"
+        sql_Values = sql_Values & ",'" & Trim(sNumExpSGO) & "'"
+    End If
     
-    GEN_INSUPDDEL sSQL
+    Stat = "INSERT INTO TCMOVI(" & sql_Fields & ") VALUES (" & sql_Values & ")"
     
-    GRABAR_MOVIMIENTO = 0
-    Exit Function
-    
-ErrorHandler:
-    ' Registrar error pero no interrumpir el flujo principal
-    Call RegistrarErrorLog("GRABAR_MOVIMIENTO", Err.Description)
-    GRABAR_MOVIMIENTO = -1
-End Function
+    HSTMT = SQL_EXEC(G_HDBC, Stat, 0)
+    ENDCODE = SQL_END(HSTMT)
+End Sub
 ```
 
 ### Lógica Resumida
 
-1. **Manejo de valores opcionales**: Convierte strings vacíos a `NULL` para cliente, fecha efecto y número expediente
-2. **Truncamiento de valores**: Limita `sAntes` y `sDespues` a 200 caracteres
-3. **Escape de caracteres**: Reemplaza comillas simples por dobles en los valores antes/después
-4. **Inserción**: Ejecuta INSERT en `TCMOVI` con `SYSDATE` para la fecha de grabación
-5. **Manejo de errores**: Captura errores sin interrumpir el flujo principal de la aplicación
-
+1. **Manejo de valores opcionales**: Añade campos a la SQL dinámica según si los valores opcionales si tienen información (que no sea nula o vacía)
+2. **Inserción**: Ejecuta INSERT en `TCMOVI`
 
 ### Notas de Migración
 
 1. **Formato de fechas**: El código legacy usa formato `YYYYMMDD` como String. Considerar migrar a `LocalDate` en el modelo interno y convertir solo para persistencia si la tabla no se puede modificar.
-
 2. **Truncamiento de valores**: Mantener la lógica de truncar `valueBefore` y `valueAfter` a 200 caracteres para compatibilidad con la estructura de tabla existente.
-
-3. **Valores NULL**: El código VB6 trata strings vacíos como NULL. En Java, usar `StringUtils.hasText()` para la misma lógica.
-
-4. **Manejo de errores silencioso**: El código legacy captura errores sin propagarlos para no interrumpir el flujo principal. En la migración, mantener este comportamiento pero asegurar logging adecuado.
-
+<!-- 3. **Valores NULL**: El código VB6 trata strings vacíos como NULL. En Java, usar `StringUtils.hasText()` para la misma lógica. -->
+<!-- 4. **Manejo de errores silencioso**: El código legacy captura errores sin propagarlos para no interrumpir el flujo principal. En la migración, mantener este comportamiento pero asegurar logging adecuado. -->
 5. **Delegaciones**: Los códigos de delegación (635=Salud, 634=Decesos) podrían externalizarse a configuración o enumeración.
-
 6. **Transaccionalidad**: El movimiento de auditoría debería grabarse en la misma transacción que la operación principal para garantizar consistencia. Considerar usar `@Transactional(propagation = Propagation.MANDATORY)` si debe ejecutarse dentro de una transacción existente.
-
 7. **Seguridad**: El campo `sUsuario` viene del contexto de sesión VB6. En Spring, obtener del `SecurityContext` o inyectar mediante AOP.
-
 8. **Código existente en el proyecto**: Verificar si `MovementEntity` y `MovementService` existentes en el proyecto pueden extenderse o si se requiere una nueva entidad específica para auditoría.
-
 ---
 
 ## INSERTAR_SUPLEMENTO_TCSUPL
