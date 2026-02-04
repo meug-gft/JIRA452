@@ -58,6 +58,30 @@ SELECT
 
 **Propósito:** Inserta un registro en la tabla `TCMOVI` para auditoría de movimientos de pólizas. Registra cambios realizados en las pólizas con valores antes/después y metadatos del movimiento.
 
+
+### SQL Generada Dinámicamente
+
+La función construye la SQL de forma **DINÁMICA**, añadiendo campos opcionales solo si tienen valor:
+
+#### Versión MÍNIMA (solo campos obligatorios)
+
+Cuando `sCliente` está vacío y ningún campo opcional tiene valor:
+
+```sql
+INSERT INTO TCMOVI(MOVINUME, MOVITIPO, MOVICDDE, MOVIFECH, MOVINPOL, MOVICDCE, MOVIUSUA, MOVINUSU, MOVICDCL) 
+VALUES (SQ_MOVIM.NEXTVAL, 'XX', 635, 'YYYYMMDD', 12345678, 0, 'USUARIO', 1, NULL)
+```
+
+#### Versión COMPLETA (todos los campos opcionales informados)
+
+Cuando todos los campos opcionales tienen valor:
+
+```sql
+INSERT INTO TCMOVI(MOVINUME, MOVITIPO, MOVICDDE, MOVIFECH, MOVINPOL, MOVICDCE, MOVIUSUA, MOVINUSU, MOVICDCL, MOVIANTE, MOVIDESP, MOVIFECH_EFECTO, MOVITAREA_SGO) 
+VALUES (SQ_MOVIM.NEXTVAL, 'XX', 635, 'YYYYMMDD', 12345678, 0, 'USUARIO', 1, 12345, 'Valor anterior', 'Valor nuevo', 'YYYYMMDD', 'EXP123456')
+```
+
+
 ### Firma
 
 ```vb
