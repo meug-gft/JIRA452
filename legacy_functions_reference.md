@@ -2,7 +2,6 @@
 
 Este documento recopila la documentación de funciones legacy VB6 relevantes para la migración, con su lógica resumida y comportamiento.
 
----
 
 ## Índice
 
@@ -22,77 +21,7 @@ Este documento recopila la documentación de funciones legacy VB6 relevantes par
 
 **Propósito:** Valida si una fecha en formato `dd/mm/yyyy` es correcta.
 
-### Firma
-
-```vb
-Function GEN_VALFEC(MICONTROL As Control) As Integer
-```
-
-### Parámetros
-
-| Parámetro | Tipo | Descripción |
-|-----------|------|-------------|
-| `MICONTROL` | Control (TextBox) | Control que contiene la fecha a validar |
-
-### Retorno
-
-| Valor | Significado |
-|-------|-------------|
-| `0` | Fecha válida |
-| `-1` | Fecha inválida (muestra mensaje de error) |
-
-### Lógica Resumida
-
-1. **Verifica longitud** = 10 caracteres (`dd/mm/yyyy`)
-2. **Verifica separadores** en posiciones 3 y 6 (`/`)
-3. **Valida que sean dígitos** en posiciones de día, mes y año
-4. **Valida rangos**:
-   - Día: 1-31
-   - Mes: 1-12
-   - Año: 1901-2998
-5. **Valida días según el mes**:
-   - Febrero: máximo 28 (o 29 si es bisiesto)
-   - Meses de 30 días: abril, junio, septiembre, noviembre
-   - Meses de 31 días: resto
-6. **Si falla**: muestra mensaje "FECHA INCORRECTA" y retorna `-1`
-
-### Ejemplo de Uso
-
-```vb
-' Validar fecha antes de procesar
-If Trim(TX_Fech.Text) = "" Or GEN_VALFEC(TX_Fech) <> 0 Then
-    ' Fecha vacía o inválida
-    G_I = PMF_ERROR("GEI024")
-    TX_Fech.SetFocus
-Else
-    ' Continuar con el proceso...
-End If
-```
-
-### Equivalente Java Propuesto
-
-```java
-public boolean isValidDate(String dateStr) {
-    if (dateStr == null || dateStr.length() != 10) {
-        return false;
-    }
-    
-    try {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        LocalDate date = LocalDate.parse(dateStr, formatter);
-        int year = date.getYear();
-        return year >= 1901 && year <= 2998;
-    } catch (DateTimeParseException e) {
-        return false;
-    }
-}
-```
-
-### Notas de Migración
-
-- En Java, usar `LocalDate` con `DateTimeFormatter` maneja automáticamente la validación de días por mes y años bisiestos
-- El rango de años (1901-2998) debe mantenerse si es un requisito de negocio
-- Considerar si el mensaje de error debe mostrarse en la capa de validación o delegarse al frontend
+Esto será un parámetro de entrada de tipo date. No hará falta validar si es una fecha o no.
 
 ---
 
@@ -102,18 +31,12 @@ public boolean isValidDate(String dateStr) {
 
 **Propósito:** Muestra mensajes de error personalizados obtenidos de la base de datos y retorna el código de la tecla pulsada por el usuario.
 
-### Firma
-
-```vb
-Function PMF_ERROR(CODERROR As String, Optional Incluir As String) As Integer
-```
 
 ### Parámetros
 
 | Parámetro | Tipo | Descripción |
 |-----------|------|-------------|
-| `CODERROR` | String | Código del error a buscar (ej: "GEI024") |
-| `Incluir` | String (Opcional) | Texto adicional a concatenar al mensaje |
+| `errorCode` | String | Código del error a buscar (ej: "GEI024") |
 
 
 ### Query lanzada
@@ -127,96 +50,6 @@ SELECT
     WHERE
         MERRCDER = :errorCode
 ```
-
-### Ejemplo de Uso
-
-```vb
-' Validar campo obligatorio
-If Trim(TX_Fech.Text) = "" Or GEN_VALFEC(TX_Fech) <> 0 Then
-    G_I = PMF_ERROR("GEI024")
-    TX_Fech.SetFocus
-    Exit Sub
-End If
-
-' Confirmación con mensaje adicional
-G_I = PMF_ERROR("CLI001", "Póliza: " & numPoliza)
-If G_I = 6 Then
-    ' Usuario confirmó, guardar cambios
-End If
-```
-
-### Equivalente Java Propuesto
-
-```java
-@Service
-public class ErrorMessageService {
-
-    private final ErrorMessageRepository errorRepository;
-    
-    public ErrorMessageService(ErrorMessageRepository errorRepository) {
-        this.errorRepository = errorRepository;
-    }
-    
-    /**
-     * Obtiene el mensaje de error desde la base de datos.
-     * 
-     * @param errorCode Código del error (ej: "GEI024")
-     * @return DTO con descripción, tipo y título del mensaje
-     */
-    public ErrorMessageDto getErrorMessage(String errorCode) {
-        return errorRepository.findByCode(errorCode)
-            .map(entity -> ErrorMessageDto.builder()
-                .code(entity.getCode())
-                .description(entity.getDescription())
-                .messageType(entity.getMessageType())
-                .title(entity.getTitle())
-                .build())
-            .orElse(ErrorMessageDto.builder()
-                .code(errorCode)
-                .description("Error desconocido: " + errorCode)
-                .messageType(0)
-                .title("Error")
-                .build());
-    }
-}
-
-// DTO para la respuesta
-@Data
-@Builder
-public class ErrorMessageDto {
-    private String code;
-    private String description;
-    private Integer messageType;
-    private String title;
-}
-
-// Entidad JPA
-@Entity
-@Table(name = "DTMERR")
-public class ErrorMessageEntity {
-    @Id
-    @Column(name = "MERRCDER")
-    private String code;
-    
-    @Column(name = "MERRDSER")
-    private String description;
-    
-    @Column(name = "MERRCDTE")
-    private Integer messageType;
-    
-    @Column(name = "MERRDSCT")
-    private String title;
-}
-```
-
-### Notas de Migración
-
-- **Separación de responsabilidades**: En la arquitectura moderna, la obtención del mensaje (backend) y su visualización (frontend) deben estar separadas
-- **API REST**: Exponer endpoint para consultar mensajes de error por código
-- **Internacionalización**: Considerar si los mensajes deben soportar múltiples idiomas
-- **Tipos de mensaje VB6**: Los valores de `M_TIPOERROR` corresponden a constantes de VB6 para `MsgBox` (ej: `vbOKOnly`, `vbYesNo`, `vbCritical`)
-- **Modo lectura**: La lógica de `G_TIPOACC = "R"` debe manejarse en el contexto de permisos del usuario en el sistema nuevo
-
 ---
 
 ## GRABAR_MOVIMIENTO
@@ -397,60 +230,6 @@ End Function
 4. **Inserción**: Ejecuta INSERT en `TCMOVI` con `SYSDATE` para la fecha de grabación
 5. **Manejo de errores**: Captura errores sin interrumpir el flujo principal de la aplicación
 
-### Ejemplos de Uso Reales del Código Legacy
-
-```vb
-' Ejemplo 1: Grabar movimiento de cambio de agente
-Call GRABAR_MOVIMIENTO(G_MOV_CAMBIO_AGENTE, _
-                       "635", _
-                       Format(Now, "YYYYMMDD"), _
-                       G_Poliza, _
-                       G_Certificado, _
-                       G_Usuario, _
-                       G_Suplemento, _
-                       G_Cliente, _
-                       "Agente anterior: " & sAgenteAnterior, _
-                       "Agente nuevo: " & sAgenteNuevo)
-
-' Ejemplo 2: Grabar movimiento de alta de asegurado con fecha de efecto
-Call GRABAR_MOVIMIENTO(G_MOV_ALTA_ASEGURADO, _
-                       "635", _
-                       Format(Now, "YYYYMMDD"), _
-                       G_Poliza, _
-                       G_Certificado, _
-                       G_Usuario, _
-                       G_Suplemento, _
-                       G_Cliente, _
-                       "", _
-                       "NIF: " & sNifAsegurado & " - Nombre: " & sNombreAsegurado, _
-                       sFechaEfecto)
-
-' Ejemplo 3: Grabar movimiento de modificación con expediente SGO
-Call GRABAR_MOVIMIENTO(G_MOV_MODIFICACION_POLIZA, _
-                       "635", _
-                       Format(Now, "YYYYMMDD"), _
-                       G_Poliza, _
-                       G_Certificado, _
-                       G_Usuario, _
-                       G_Suplemento, _
-                       "", _
-                       "Dirección anterior: " & sDireccionAnterior, _
-                       "Dirección nueva: " & sDireccionNueva, _
-                       sFechaEfecto, _
-                       sNumExpedienteSGO)
-
-' Ejemplo 4: Grabar movimiento de cambio de forma de pago
-Call GRABAR_MOVIMIENTO(G_MOV_CAMBIO_FORMA_PAGO, _
-                       G_Delegacion, _
-                       Format(Now, "YYYYMMDD"), _
-                       txtPoliza.Text, _
-                       txtCertificado.Text, _
-                       G_UsuarioActual, _
-                       "000", _
-                       txtCliente.Text, _
-                       "Forma pago: " & sFormaPagoAnterior, _
-                       "Forma pago: " & sFormaPagoNueva)
-```
 
 ### Equivalente Java Propuesto
 
