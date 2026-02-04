@@ -42,13 +42,13 @@ Esto será un parámetro de entrada de tipo date. No hará falta validar si es u
 ### Query lanzada
 ```sql
 SELECT 
-        MERRCDER as errorCode, 
-        MERRDSER as errorDescription, 
-        MERRCDTE as errorTypeCode, 
-        MERRDSCT as shortDescription 
-    FROM DTMERR 
-    WHERE
-        MERRCDER = :errorCode
+    MERRCDER as errorCode, 
+    MERRDSER as errorDescription, 
+    MERRCDTE as errorTypeCode, 
+    MERRDSCT as shortDescription 
+FROM DTMERR 
+WHERE
+    MERRCDER = :errorCode
 ```
 ---
 
@@ -68,8 +68,26 @@ La función construye la SQL de forma **DINÁMICA**, añadiendo campos opcionale
 Cuando `sCliente` está vacío y ningún campo opcional tiene valor:
 
 ```sql
-INSERT INTO TCMOVI(MOVINUME, MOVITIPO, MOVICDDE, MOVIFECH, MOVINPOL, MOVICDCE, MOVIUSUA, MOVINUSU, MOVICDCL) 
-VALUES (SQ_MOVIM.NEXTVAL, 'XX', 635, 'YYYYMMDD', 12345678, 0, 'USUARIO', 1, NULL)
+INSERT INTO TCMOVI(
+    MOVINUME, 
+    MOVITIPO, 
+    MOVICDDE, 
+    MOVIFECH, 
+    MOVINPOL, 
+    MOVICDCE, 
+    MOVIUSUA, 
+    MOVINUSU, 
+    MOVICDCL) 
+VALUES (
+    SQ_MOVIM.NEXTVAL,
+    :tipo,
+    :delegationCode,
+    'YYYYMMDD',
+    12345678,
+    0,
+    'USUARIO',
+    1,
+    NULL)
 ```
 
 #### Versión COMPLETA (todos los campos opcionales informados)
