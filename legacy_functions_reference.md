@@ -90,7 +90,7 @@ Function GRABAR_MOVIMIENTO(sTipo As String, _
 | `beforeValue` | String | Valor antes del cambio |
 | `afterValue` | String | Valor después del cambio |
 | `modifiedAt` | String (Opcional) | Fecha de efecto del movimiento en formato YYYYMMDD |
-| `sgoTask` | Boolean (Opcional) | Número de expediente SGO |
+| `sgoTask` | Long (Opcional) | Número de expediente SGO |
 
 
 ### Constantes de Tipos de Movimiento (G_MOV_*)
@@ -801,6 +801,8 @@ WHERE POLICDDE = :codigoDelegacion
 ' Limpia temporales de prorrateo
 Call PMS_BORRA_TMPROR(G_POLINPOL, "0")
 ```
+
+PMS_BORRA_TMPROR lo unic q fa es cridar a una de estes en Database Navigator: Conexión → Schemas → SCOTT → Packages → busca PCK_TARPRO.PMS_BORRA_TMPROR()
 
 Esta llamada elimina los registros temporales de prorrateo de la tabla `TMPROR` para la póliza procesada.
 
