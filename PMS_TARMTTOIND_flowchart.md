@@ -176,14 +176,38 @@ Compara valores actuales vs anteriores (G_POLI2*):
 | ESPA (Estado) | G_POLI2ESPA | DCAS015.CB_Espa |
 
 ### 3. 📥 CARGA DATOS PÓLIZA (Líneas ~575-620)
-```sql
-SELECT POLICDDE, POLINPOL, POLIFECA, POLICDPT, POLIFOPA, 
-       POLIIDCO, POLICOBR, POLIPRNT, POLIPRNE, POLIRECA,
-       POLIRECE, POLIIMPT, POLIIMPE, POLITORE, POLIIPUN,
-       POLIIPUE, POLINUPE, POLIFEER, POLITIPO_DCTO, POLITREN, POLIFEVE
-FROM DTPOLI 
-WHERE POLICDDE = ? AND POLINPOL = ?
-FOR UPDATE  -- Bloqueo pesimista
+```java
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("""
+    SELECT 
+        p.delegationCode,
+        p.policyNumber,
+        p.effectiveDate,
+        p.productCode,
+        p.paymentMethod,
+        p.specialCoverageFlag,
+        p.collector,
+        p.netPremium,
+        p.netPremiumPesos,
+        p.currentReceipt,
+        p.currentReceiptPesos,
+        p.totalImport,
+        p.totalImportPesos,
+        p.totalRate,
+        p.unitPrice,
+        p.unitPriceEuros,
+        p.numberOfInsured,
+        p.nextIssuanceDate,
+        CAST(NULL AS String) AS discountType,
+        p.renewalType2,
+        p.expirationDate
+    FROM PolicyEntity p
+    WHERE p.delegationCode = :delegationCode 
+      AND p.policyNumber = :policyNumber
+    """)
+Optional<PolicyDataProjection> findPolicyDataForUpdate(
+    @Param("delegationCode") Integer delegationCode,
+    @Param("policyNumber") Integer policyNumber);
 ```
 
 ### 4. ✅ VALIDACIÓN (Líneas ~625-660)
