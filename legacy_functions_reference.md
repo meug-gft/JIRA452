@@ -784,10 +784,10 @@ F_ENDCODE = SQL_END(HSTMT)
 **SQL Equivalente:**
 ```sql
 UPDATE DTPOLI 
-SET POLIFECM = :fechaModificacion,  -- YYYYMMDD (fecha actual)
-    POLINUSU = :nuevoNumeroSuplemento  -- G_POLINUSU + 1
-WHERE POLICDDE = :codigoDelegacion 
-  AND POLINPOL = :numeroPoliza
+SET POLIFECM = :modifiedAtDate,  -- YYYYMMDD (fecha actual)
+    POLINUSU = :supplementNumber  -- G_POLINUSU + 1
+WHERE POLICDDE = :delegationCode 
+  AND POLINPOL = :policyNumber
 ```
 
 | Campo | Descripción |
@@ -795,7 +795,7 @@ WHERE POLICDDE = :codigoDelegacion
 | `POLIFECM` | Fecha de última modificación de la póliza (formato YYYYMMDD) |
 | `POLINUSU` | Número de suplemento actual de la póliza (se incrementa en 1) |
 
-#### Limpieza de Temporales (PMS_BORRA_TMPROR)
+## Limpieza de Temporales (PMS_BORRA_TMPROR)
 
 ```vb
 ' Limpia temporales de prorrateo
@@ -815,7 +815,7 @@ ihstmt = SQL_COMMIT(G_HDBC)
 
 Todas las operaciones anteriores (INSERT TCSUPL, INSERT TSSUPC, UPDATE DTPOLI, DELETE TMPROR) se confirman en una única transacción.
 
-### Integración con BDI
+## Integración con BDI
 
 ```vb
 ' Integración con BDI
