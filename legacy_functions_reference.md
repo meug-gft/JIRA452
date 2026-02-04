@@ -290,14 +290,11 @@ End Sub
 
 ### Notas de Migración
 
-1. **Formato de fechas**: El código legacy usa formato `YYYYMMDD` como String. Considerar migrar a `LocalDate` en el modelo interno y convertir solo para persistencia si la tabla no se puede modificar.
-2. **Truncamiento de valores**: Mantener la lógica de truncar `valueBefore` y `valueAfter` a 200 caracteres para compatibilidad con la estructura de tabla existente.
-<!-- 3. **Valores NULL**: El código VB6 trata strings vacíos como NULL. En Java, usar `StringUtils.hasText()` para la misma lógica. -->
-<!-- 4. **Manejo de errores silencioso**: El código legacy captura errores sin propagarlos para no interrumpir el flujo principal. En la migración, mantener este comportamiento pero asegurar logging adecuado. -->
-5. **Delegaciones**: Los códigos de delegación (635=Salud, 634=Decesos) podrían externalizarse a configuración o enumeración.
-6. **Transaccionalidad**: El movimiento de auditoría debería grabarse en la misma transacción que la operación principal para garantizar consistencia. Considerar usar `@Transactional(propagation = Propagation.MANDATORY)` si debe ejecutarse dentro de una transacción existente.
-7. **Seguridad**: El campo `sUsuario` viene del contexto de sesión VB6. En Spring, obtener del `SecurityContext` o inyectar mediante AOP.
-8. **Código existente en el proyecto**: Verificar si `MovementEntity` y `MovementService` existentes en el proyecto pueden extenderse o si se requiere una nueva entidad específica para auditoría.
+1. **Formato de fechas**: La base de datos usa formato `YYYYMMDD` como String. Es necesario utilizar funciones de conversión.
+2. **Delegaciones**: En TCMOVI existen 2 códigos de delegación (635=Salud, 634=Decesos).
+3. **Transaccionalidad**: El movimiento de auditoría debería grabarse en la misma transacción que la operación principal para garantizar consistencia. Considerar usar `@Transactional(propagation = Propagation.MANDATORY)` si debe ejecutarse dentro de una transacción existente.
+4. **Seguridad**: El campo `sUsuario` viene del contexto de sesión VB6. En Spring, obtener del `SecurityContext` o inyectar mediante AOP.
+5. **Código existente en el proyecto**: Verificar si `MovementEntity` y `MovementService` existentes en el proyecto pueden extenderse o si se requiere una nueva entidad específica para auditoría.
 ---
 
 ## INSERTAR_SUPLEMENTO_TCSUPL
