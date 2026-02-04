@@ -510,6 +510,165 @@ public class MovementAuditService {
 
 **Propósito:** Inserta un registro de suplemento en la tabla TCSUPL con todos los datos históricos de una póliza/certificado. Construye dinámicamente el INSERT según si hay datos de domicilio nuevos o antiguos. Delega en INSERTAR_SUPLEMENTO_TSSUPC para las cláusulas asociadas.
 
+
+### SQL Generada Dinámicamente
+
+La función construye la SQL de forma **DINÁMICA**, con dos variantes según el formato del domicilio:
+
+#### Estructura General de la Query INSERT INTO TCSUPL
+
+```sql
+INSERT INTO TCSUPL (
+  -- Campos de identificación (4 campos)
+  SUPLCDDE, SUPLNPOL, SUPLCDCE, SUPLNUSU,
+  
+  -- Campos de tipo y estado (11 campos)
+  SUPLTIPO, SUPLSITP, SUPLSITC, SUPLFECA, SUPLFECB, SUPLFECC,
+  SUPLFEBA, SUPLCDPT, SUPLCDTA, SUPLFOPA, SUPLTIPA,
+  
+  -- Campos de personas y referencias (9 campos)
+  SUPLNUPE, SUPLIDCP, SUPLIDCO, SUPLCDTR, SUPLIDEX,
+  SUPLCOBR, SUPLAGTA, SUPLAGTB, SUPLINSP,
+  
+  -- Campos de primas e importes (10 campos)
+  SUPLPRNT, SUPLPRNE, SUPLRECA, SUPLRECE, SUPLIMPT, SUPLIMPE,
+  SUPLTORE, SUPLMOCE, SUPLCDPS, SUPLCDPO,
+  
+  -- Campos adicionales de importes (14 campos)
+  SUPLTFNO_NUTE, SUPLCRNT, SUPLCRNE, SUPLCECA, SUPLCECE,
+  SUPLCMPT, SUPLCMPE, SUPLCORE, SUPLIPUN, SUPLIPUE,
+  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE,
+  
+  -- Campos de referencia (2 campos)
+  SUPLCDRP, SUPLCDPC,
+  
+  -- Campos P207 - provincia y switches (7 campos)
+  SUPLPROVINCIA_TARIFICACION, SUPLSWPROVINCIA, SUPLSWPRODUCCION,
+  SUPLSWTARIFA, SUPLSWDCTO, SUPLDCTONUMPERSONAS, SUPLRECFORMAPAGO,
+  
+  -- Campos de adaptación (2 campos)
+  SUPLADAP, SUPLTERRITORIALIDAD,
+  
+  -- Campos de domicilio (1 o 11 campos según formato)
+  -- Si formato antiguo: SUP_NOMBREVIA
+  -- Si formato normalizado: SUP_CDG_TIPOVIA, SUP_NOMBREVIA, SUP_NUMEROVIA,
+  --                        SUP_PORTAL, SUP_BLOQUE, SUP_ESCALERA,
+  --                        SUP_PISO, SUP_PUERTA, SUP_RESTOVIA,
+  --                        SUP_CPOBLA_INE, SUP_CVIA_INE
+  
+  -- Campos de descuento - 8 grupos
+  SUPLDESC_G01, SUPLDESC_G02, SUPLDESC_G03, SUPLDESC_G04,
+  SUPLDESC_G05, SUPLDESC_G06, SUPLDESC_G07, SUPLDESC_G08,
+  
+  -- Indicadores (2 campos)
+  SUPLINDVTAC, SUPLINDPRIC
+) VALUES (...)
+```
+
+#### Versión MÍNIMA (domicilio en formato antiguo - sin "#")
+
+Cuando `G_POCE2DOMI` **NO contiene** el carácter `#`, se considera formato antiguo y solo se graba `SUP_NOMBREVIA`:
+
+```sql
+INSERT INTO TCSUPL (
+  SUPLCDDE, SUPLNPOL, SUPLCDCE, SUPLNUSU,
+  SUPLTIPO, SUPLSITP, SUPLSITC, SUPLFECA, SUPLFECB, SUPLFECC,
+  SUPLFEBA, SUPLCDPT, SUPLCDTA, SUPLFOPA, SUPLTIPA,
+  SUPLNUPE, SUPLIDCP, SUPLIDCO, SUPLCDTR, SUPLIDEX,
+  SUPLCOBR, SUPLAGTA, SUPLAGTB, SUPLINSP,
+  SUPLPRNT, SUPLPRNE, SUPLRECA, SUPLRECE, SUPLIMPT, SUPLIMPE,
+  SUPLTORE, SUPLMOCE, SUPLCDPS, SUPLCDPO,
+  SUPLTFNO_NUTE, SUPLCRNT, SUPLCRNE, SUPLCECA, SUPLCECE,
+  SUPLCMPT, SUPLCMPE, SUPLCORE, SUPLIPUN, SUPLIPUE,
+  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE, SUPLCDRP, SUPLCDPC,
+  SUPLPROVINCIA_TARIFICACION, SUPLSWPROVINCIA, SUPLSWPRODUCCION,
+  SUPLSWTARIFA, SUPLSWDCTO, SUPLDCTONUMPERSONAS, SUPLRECFORMAPAGO,
+  SUPLADAP, SUPLTERRITORIALIDAD,
+  SUP_NOMBREVIA,  -- Solo este campo de domicilio
+  SUPLDESC_G01, SUPLDESC_G02, SUPLDESC_G03, SUPLDESC_G04,
+  SUPLDESC_G05, SUPLDESC_G06, SUPLDESC_G07, SUPLDESC_G08,
+  SUPLINDVTAC, SUPLINDPRIC
+) VALUES (
+  635, 12345678, 0, 1,
+  '03', 'A', 'A', '20241115', '20240101', '20240101',
+  NULL, 100, 'T01', 'M', 'D',
+  2, 'X1234567A', 'Y9876543B', '01', 'S',
+  'S', 'AG001', 'AG002', 'S',
+  1200.50, 0, 120.05, 0, 252.11, 0,
+  1572.66, 'S', '28001', '28',
+  '912345678', 0, 0, 0, 0,
+  0, 0, 0, 0, 0,
+  0, 0, NULL, 0, 0, 0,
+  '28', 'S', 'S',
+  'N', 'N', 0, 0,
+  'A', 'N',
+  'CALLE GRAN VIA 123, 5º B',  -- Dirección completa en formato antiguo
+  10.00, 5.00, 0, 0, 0, 0, 0, 0,
+  'S', 'N'
+)
+```
+
+#### Versión COMPLETA (domicilio normalizado - con "#")
+
+Cuando `G_POCE2DOMI` **contiene** el carácter `#`, se parsean los 11 campos de domicilio normalizado:
+
+```sql
+INSERT INTO TCSUPL (
+  SUPLCDDE, SUPLNPOL, SUPLCDCE, SUPLNUSU,
+  SUPLTIPO, SUPLSITP, SUPLSITC, SUPLFECA, SUPLFECB, SUPLFECC,
+  SUPLFEBA, SUPLCDPT, SUPLCDTA, SUPLFOPA, SUPLTIPA,
+  SUPLNUPE, SUPLIDCP, SUPLIDCO, SUPLCDTR, SUPLIDEX,
+  SUPLCOBR, SUPLAGTA, SUPLAGTB, SUPLINSP,
+  SUPLPRNT, SUPLPRNE, SUPLRECA, SUPLRECE, SUPLIMPT, SUPLIMPE,
+  SUPLTORE, SUPLMOCE, SUPLCDPS, SUPLCDPO,
+  SUPLTFNO_NUTE, SUPLCRNT, SUPLCRNE, SUPLCECA, SUPLCECE,
+  SUPLCMPT, SUPLCMPE, SUPLCORE, SUPLIPUN, SUPLIPUE,
+  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE, SUPLCDRP, SUPLCDPC,
+  SUPLPROVINCIA_TARIFICACION, SUPLSWPROVINCIA, SUPLSWPRODUCCION,
+  SUPLSWTARIFA, SUPLSWDCTO, SUPLDCTONUMPERSONAS, SUPLRECFORMAPAGO,
+  SUPLADAP, SUPLTERRITORIALIDAD,
+  -- 11 campos de domicilio normalizado
+  SUP_CDG_TIPOVIA, SUP_NOMBREVIA, SUP_NUMEROVIA,
+  SUP_PORTAL, SUP_BLOQUE, SUP_ESCALERA,
+  SUP_PISO, SUP_PUERTA, SUP_RESTOVIA,
+  SUP_CPOBLA_INE, SUP_CVIA_INE,
+  -- Descuentos e indicadores
+  SUPLDESC_G01, SUPLDESC_G02, SUPLDESC_G03, SUPLDESC_G04,
+  SUPLDESC_G05, SUPLDESC_G06, SUPLDESC_G07, SUPLDESC_G08,
+  SUPLINDVTAC, SUPLINDPRIC
+) VALUES (
+  635, 12345678, 1, 5,
+  '03', 'A', 'A', '20241115', '20240101', '20240101',
+  NULL, 100, 'T01', 'M', 'D',
+  2, 'X1234567A', 'Y9876543B', '01', 'S',
+  'S', 'AG001', 'AG002', 'S',
+  1200.50, 0, 120.05, 0, 252.11, 0,
+  1572.66, 'S', '28001', '28',
+  '912345678', 0, 0, 0, 0,
+  0, 0, 0, 0, 0,
+  0, 0, NULL, 0, 0, 0,
+  '28', 'S', 'S',
+  'N', 'N', 0, 0,
+  'A', 'N',
+  -- Domicilio normalizado (11 campos)
+  'CL',           -- SUP_CDG_TIPOVIA (código tipo vía)
+  'GRAN VIA',     -- SUP_NOMBREVIA
+  '123',          -- SUP_NUMEROVIA
+  '',             -- SUP_PORTAL
+  '',             -- SUP_BLOQUE
+  'A',            -- SUP_ESCALERA
+  '5',            -- SUP_PISO
+  'B',            -- SUP_PUERTA
+  '',             -- SUP_RESTOVIA (resto dirección)
+  '2807901',      -- SUP_CPOBLA_INE (código población INE)
+  '280790100123', -- SUP_CVIA_INE (código vía INE)
+  -- Descuentos G01-G08
+  10.00, 5.00, 0, 0, 0, 0, 0, 0,
+  -- Indicadores
+  'S', 'N'
+)
+```
+
 ### Firma
 
 ```vb
