@@ -123,13 +123,31 @@ def pms_tarttoind(muchisimos_parametros: object):
     if proceedTarification or (not proceedTarification and bCambioTomador):
         G_POLI2FOPA:str ## no se lo que es G_POLI2FOPA
         bCambioFormaPago: bool
+        bCambio_Tarifa: bool
+        bReactivacion: bool
+        bCambio_TipoDescuento: bool
+        bProvincia: bool
         
         #Comprueba el suplemento realizado
-        if G_POLI2FOPA is not formaPago: bCambioFormaPago = True
+        bCambioFormaPago = G_POLI2FOPA is not formaPago
+        bCambio_Tarifa = G_POLI2CDTA is not muchisimos_parametros.DCAS015.TX_CDTA or G_POLI2FVTAR is not G_POLIFVTAR and G_POLI2ESPA is not "04"
+        bReactivacion = G_POLI2ESPA is not G_ALTAP and muchisimos_parametros.DCAS015.CB_Espa.Text[71::2] == G_ALTAP
+        bCambio_TipoDescuento = CambioDescuento(G_GruposDescuento, G_Grupos2Descuento)
+        bProvincia = G_POLI2PROVINCIA_TARIFICACION is not muchisimos_parametros.DCAS017.Cmb_ProvinciaTar.Text[71::2]
+        bOtros_Suplementos = (not bCambioFormaPago and not bCambio_Tarifa and not bReactivacion and not bCambio_TipoDescuento and not bProvincia)
 
+        if (
+            (bCambioFormaPago and 
+            (bCambio_Tarifa or bCambio_TipoDescuento or bReactivacion or bProvincia)) or 
+            (bCambio_Tarifa and (bReactivacion or bProvincia)) or 
+            (bCambio_TipoDescuento and (bReactivacion or bProvincia)) or 
+            (bReactivacion and bProvincia) or
+            (not bOtros_Suplementos and G_SWSUPL = -1)
+        ):
+            front.throws("Realice un s�lo cambio a la vez")
+            return
 
-
-
+        if()
     pass
 
 def grabar_movimiento():

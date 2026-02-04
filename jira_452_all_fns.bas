@@ -312,10 +312,14 @@ Public Sub PMS_TARMTTOIND()
             
             bProvincia = (Trim$(G_POLI2PROVINCIA_TARIFICACION) <> Trim$(Mid(DCAS017.Cmb_ProvinciaTar.Text, 71, 2)))
             bOtros_Suplementos = (Not bCambio_FPago And Not bCambio_Tarifa And Not bReactivacion And Not bCambio_TipoDescuento And Not bProvincia)
-            If (bCambio_FPago And (bCambio_Tarifa Or bCambio_TipoDescuento Or bReactivacion Or bProvincia)) Or _
+            
+            If (bCambio_FPago And 
+                (bCambio_Tarifa Or bCambio_TipoDescuento Or bReactivacion Or bProvincia)) Or 
                 (bCambio_Tarifa And (bReactivacion Or bProvincia)) Or _
-                (bCambio_TipoDescuento And (bReactivacion Or bProvincia)) Or (bReactivacion And bProvincia) Or _
-                (Not bOtros_Suplementos And G_SWSUPL = -1) Then
+                (bCambio_TipoDescuento And (bReactivacion Or bProvincia)) Or 
+                (bReactivacion And bProvincia) Or _
+                (Not bOtros_Suplementos And G_SWSUPL = -1) 
+                Then
                     MsgBox "Realice un s�lo cambio a la vez", vbCritical, "Modificaciones Incorrecta"
                     G_TECLA_PRORRATEO = vbCancel
                 Exit Sub
@@ -940,7 +944,7 @@ End Sub
 '' IBERCAJA.bas
 ''
 Public Sub GRABAR_MOVIMIENTO(sTipo As String, sDelegacion As String, sFecha As String, sPoliza As String, sCertificado As String, sUsuario As String, sSuplemento As String, sCliente As String, sAntes As String, sDespues As String, Optional sFecha_Efecto = "", Optional sNumExpSGO As String = "")
-'Procedimiento que inserta un registro en la tabla TCMOVI.
+    'Procedimiento que inserta un registro en la tabla TCMOVI.
 
     Dim Stat As String
     Dim sql_Fields As String
