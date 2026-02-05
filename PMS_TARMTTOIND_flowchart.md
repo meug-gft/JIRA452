@@ -324,72 +324,129 @@ PMS_BORRA_DETALLE_PRORRATEO(Poliza, "0", "")
 
 ## Pop-ups avisos
 
-Hay 2 llamadas a Mostrar_Pantalla_Confirmacion:
+## 📌 Llamadas a `Mostrar_Pantalla_Confirmacion`
 
-    Llamada 1 - Línea 478
-    Dentro de una función (probablemente colectivos). Comentario: 'Muestra la pantalla de confirmación con los importes de la operación
+Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
-    Llamada 2 - Línea 1386
-    Dentro de PMS_TARMTTOIND(). Comentario: 'Muestra la pantalla con la información de los prorrateos y primas anules resultantes
+### 🔹 Llamada 1 — Línea **478**
+- **Ubicación:** Dentro de una función (probablemente *colectivos*)
+- **Comentario:**  
+  > Muestra la pantalla de confirmación con los importes de la operación
 
-Pantallas Emergentes - Cadena de Llamadas:
-Cmd_Tarificar_Click() → llama a → PMS_TARMTTOIND() (línea 500) → llama a → Mostrar_Pantalla_Confirmacion() (línea 46)
+### 🔹 Llamada 2 — Línea **1386**
+- **Ubicación:** Dentro de `PMS_TARMTTOIND()`
+- **Comentario:**  
+  > Muestra la pantalla con la información de los prorrateos y primas anuales resultantes
 
-Fase 1: Dentro de PMS_TARMTTOIND() (línea 500+)
-Línea 711 - Error crítico
+---
 
-Condición: Se detectan múltiples cambios simultáneos
-Mensaje: "Realice un sólo cambio a la vez"
-Tipo: vbCritical
-Línea 719 - Pregunta Sí/No/Cancelar
+## 🪟 Pantallas Emergentes — Cadena de Llamadas
 
-Condición: bCambio_Tarifa = True Y existen descuentos de siniestralidad/pricing
-Mensaje: "Realizar un cambio de tarifa puede implicar perder los descuentos actuales, incluyendo siniestralidad y pricing..."
-Tipo: vbYesNoCancel
-Línea 724 - Pregunta Sí/No
 
-Condición: bCambio_Tarifa = True Y no existen descuentos de siniestralidad/pricing
-Mensaje: "Realizar un cambio de tarifa puede implicar perder los descuentos actuales..."
-Tipo: vbYesNo
-Línea 772 - Error crítico
 
-Condición: Validación de fecha falló
-Mensaje: "La fecha debe estar comprendida entre el [fecha] y el [fecha]"
-Tipo: vbCritical
-Línea 834 - Mensaje informativo
+---
 
-Condición: bCambio_FPago = True Y existen prorrateos pendientes
-Mensaje: "Compruebe los prorrateos pendientes de la póliza"
-Tipo: Informativo por defecto
-Línea 840 - Mensaje informativo
+## 🧩 Fase 1: Dentro de `PMS_TARMTTOIND()` (línea 500+)
 
-Condición: bCambio_FPago = True Y las formas de pago son similares
-Mensaje: "Las formas de pago son similares"
-Tipo: Informativo por defecto
-Línea 849 - Mensaje informativo
+### ❌ Línea 711 — Error crítico
+- **Condición:** Se detectan múltiples cambios simultáneos
+- **Mensaje:**  
+  > "Realice un sólo cambio a la vez"
+- **Tipo:** `vbCritical`
 
-Condición: G_Fecha_Asegurado <> "" Y se detecta operación de rehabilitación
-Mensaje: "Revise los prorrateos y recibos previos"
-Tipo: Informativo por defecto
-Línea 1300 - Mensaje informativo
+---
 
-Condición: La fecha de efecto del suplemento no tiene primas definidas
-Mensaje: "Se ha encontrado que para la fecha de efecto del suplemento no hay definidas unas primas..."
-Tipo: vbInformation
-Línea 1338 - Error crítico (Servicio Web)
+### ❓ Línea 719 — Pregunta Sí / No / Cancelar
+- **Condición:**  
+  `bCambio_Tarifa = True` **y** existen descuentos de siniestralidad/pricing
+- **Mensaje:**  
+  > "Realizar un cambio de tarifa puede implicar perder los descuentos actuales, incluyendo siniestralidad y pricing..."
+- **Tipo:** `vbYesNoCancel`
 
-Condición: MdlTiposDescuento.QRYPRICINGWS_STR <> ""
-Mensaje: Mensaje de error del Servicio Web
-Tipo: vbCritical
-Fase 2: Dentro de Mostrar_Pantalla_Confirmacion() (línea 46+) - llamada por PMS_TARMTTOIND()
-Línea 93 - Mensaje informativo
+---
 
-Condición: Trim(CDbl(DTAS005.TX_TORE.Text)) > 5000 Or Trim(CDbl(DTAS005.TX_PROR.Text)) > 5000
-Mensaje: "EL RECIBO QUE SE GENERARÁ SUPERA LOS 5.000 €"
-Tipo: vbInformation
-Línea 100 - Pregunta Sí/No ⭐ (La más probable)
+### ❓ Línea 724 — Pregunta Sí / No
+- **Condición:**  
+  `bCambio_Tarifa = True` **y** no existen descuentos de siniestralidad/pricing
+- **Mensaje:**  
+  > "Realizar un cambio de tarifa puede implicar perder los descuentos actuales..."
+- **Tipo:** `vbYesNo`
 
-Condición: CCurNoNulls(DTAS005.TX_TORE.Text) = 0
-Mensaje: "El importe de la prima de la póliza es 0. ¿Desea de todos modos continuar con la grabación de la póliza?"
-Tipo: vbYesNo (Aceptar/Cancelar)
-Asigna: G_TECLA_PRORRATEO
+---
+
+### ❌ Línea 772 — Error crítico
+- **Condición:** Validación de fecha falló
+- **Mensaje:**  
+  > "La fecha debe estar comprendida entre el [fecha] y el [fecha]"
+- **Tipo:** `vbCritical`
+
+---
+
+### ℹ️ Línea 834 — Mensaje informativo
+- **Condición:**  
+  `bCambio_FPago = True` **y** existen prorrateos pendientes
+- **Mensaje:**  
+  > "Compruebe los prorrateos pendientes de la póliza"
+- **Tipo:** Informativo (por defecto)
+
+---
+
+### ℹ️ Línea 840 — Mensaje informativo
+- **Condición:**  
+  `bCambio_FPago = True` **y** las formas de pago son similares
+- **Mensaje:**  
+  > "Las formas de pago son similares"
+- **Tipo:** Informativo (por defecto)
+
+---
+
+### ℹ️ Línea 849 — Mensaje informativo
+- **Condición:**  
+  `G_Fecha_Asegurado <> ""` **y** se detecta operación de rehabilitación
+- **Mensaje:**  
+  > "Revise los prorrateos y recibos previos"
+- **Tipo:** Informativo (por defecto)
+
+---
+
+### ℹ️ Línea 1300 — Mensaje informativo
+- **Condición:**  
+  La fecha de efecto del suplemento no tiene primas definidas
+- **Mensaje:**  
+  > "Se ha encontrado que para la fecha de efecto del suplemento no hay definidas unas primas..."
+- **Tipo:** `vbInformation`
+
+---
+
+### ❌ Línea 1338 — Error crítico (Servicio Web)
+- **Condición:**  
+  `MdlTiposDescuento.QRYPRICINGWS_STR <> ""`
+- **Mensaje:**  
+  > Mensaje de error devuelto por el Servicio Web
+- **Tipo:** `vbCritical`
+
+---
+
+## 🧩 Fase 2: Dentro de `Mostrar_Pantalla_Confirmacion()` (línea 46+)  
+*(Llamada desde `PMS_TARMTTOIND()`)*
+
+### ℹ️ Línea 93 — Mensaje informativo
+- **Condición:**  
+  `Trim(CDbl(DTAS005.TX_TORE.Text)) > 5000`  
+  **o**  
+  `Trim(CDbl(DTAS005.TX_PROR.Text)) > 5000`
+- **Mensaje:**  
+  > "EL RECIBO QUE SE GENERARÁ SUPERA LOS 5.000 €"
+- **Tipo:** `vbInformation`
+
+---
+
+### ❓ Línea 100 — Pregunta Sí / No ⭐ *(la más probable)*
+- **Condición:**  
+  `CCurNoNulls(DTAS005.TX_TORE.Text) = 0`
+- **Mensaje:**  
+  > "El importe de la prima de la póliza es 0. ¿Desea de todos modos continuar con la grabación de la póliza?"
+- **Tipo:** `vbYesNo` *(Aceptar / Cancelar)*
+- **Acción:**  
+  Asigna valor a `G_TECLA_PRORRATEO`
+
