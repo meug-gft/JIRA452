@@ -308,56 +308,6 @@ End Sub
 
 La función construye la SQL de forma **DINÁMICA**, con dos variantes según el formato del domicilio:
 
-#### Estructura General de la Query INSERT INTO TCSUPL
-
-```sql
-INSERT INTO TCSUPL (
-  -- Campos de identificación (4 campos)
-  SUPLCDDE, SUPLNPOL, SUPLCDCE, SUPLNUSU,
-  
-  -- Campos de tipo y estado (11 campos)
-  SUPLTIPO, SUPLSITP, SUPLSITC, SUPLFECA, SUPLFECB, SUPLFECC,
-  SUPLFEBA, SUPLCDPT, SUPLCDTA, SUPLFOPA, SUPLTIPA,
-  
-  -- Campos de personas y referencias (9 campos)
-  SUPLNUPE, SUPLIDCP, SUPLIDCO, SUPLCDTR, SUPLIDEX,
-  SUPLCOBR, SUPLAGTA, SUPLAGTB, SUPLINSP,
-  
-  -- Campos de primas e importes (10 campos)
-  SUPLPRNT, SUPLPRNE, SUPLRECA, SUPLRECE, SUPLIMPT, SUPLIMPE,
-  SUPLTORE, SUPLMOCE, SUPLCDPS, SUPLCDPO,
-  
-  -- Campos adicionales de importes (14 campos)
-  SUPLTFNO_NUTE, SUPLCRNT, SUPLCRNE, SUPLCECA, SUPLCECE,
-  SUPLCMPT, SUPLCMPE, SUPLCORE, SUPLIPUN, SUPLIPUE,
-  SUPLCPUN, SUPLCPUE, SUPLIDMA, SUPLNUCE,
-  
-  -- Campos de referencia (2 campos)
-  SUPLCDRP, SUPLCDPC,
-  
-  -- Campos P207 - provincia y switches (7 campos)
-  SUPLPROVINCIA_TARIFICACION, SUPLSWPROVINCIA, SUPLSWPRODUCCION,
-  SUPLSWTARIFA, SUPLSWDCTO, SUPLDCTONUMPERSONAS, SUPLRECFORMAPAGO,
-  
-  -- Campos de adaptación (2 campos)
-  SUPLADAP, SUPLTERRITORIALIDAD,
-  
-  -- Campos de domicilio (1 o 11 campos según formato)
-  -- Si formato antiguo: SUP_NOMBREVIA
-  -- Si formato normalizado: SUP_CDG_TIPOVIA, SUP_NOMBREVIA, SUP_NUMEROVIA,
-  --                        SUP_PORTAL, SUP_BLOQUE, SUP_ESCALERA,
-  --                        SUP_PISO, SUP_PUERTA, SUP_RESTOVIA,
-  --                        SUP_CPOBLA_INE, SUP_CVIA_INE
-  
-  -- Campos de descuento - 8 grupos
-  SUPLDESC_G01, SUPLDESC_G02, SUPLDESC_G03, SUPLDESC_G04,
-  SUPLDESC_G05, SUPLDESC_G06, SUPLDESC_G07, SUPLDESC_G08,
-  
-  -- Indicadores (2 campos)
-  SUPLINDVTAC, SUPLINDPRIC
-) VALUES (...)
-```
-
 #### Versión MÍNIMA (domicilio en formato antiguo - sin "#")
 
 Cuando `G_POCE2DOMI` **NO contiene** el carácter `#`, se considera formato antiguo y solo se graba `SUP_NOMBREVIA`:
@@ -640,35 +590,349 @@ Public Sub INSERTAR_SUPLEMENTO_TCSUPL(
 | `G_POCEFECM` | String (ByRef) | Fecha de modificación (retornado) |
 | `strSuplemento_DTSUAS` | String (ByRef) | Número de suplemento generado (retornado) |
 
-### Estructura de Base de Datos
 
-**Tabla principal:** `TCSUPL`
+---
+Dado que la tabla es enorme, se ha generado una entidad `TCSUPL`
+que refleja la tabla entera
+**Entidad JPA:** `TCSUPL`
+```java
+package es.caser.salud.polind.entity;
 
-Campos principales insertados (70+ columnas):
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-| Campo | Descripción |
-|-------|-------------|
-| `SUPLCDDE` | Código de delegación |
-| `SUPLNPOL` | Número de póliza |
-| `SUPLCDCE` | Código de certificado |
-| `SUPLNUSU` | Número de suplemento |
-| `SUPLTIPO` | Tipo de entidad (01/02/03) |
-| `SUPLSITP` | Estado previo póliza |
-| `SUPLSITC` | Estado actual |
-| `SUPLFECA` | Fecha creación suplemento (YYYYMMDD) |
-| `SUPLFECB` | Fecha efecto B |
-| `SUPLFECC` | Fecha efecto C |
-| `SUPLFEBA` | Fecha baja |
-| `SUPLCDPT` | Código producto |
-| `SUPLCDTA` | Código tarifa |
-| `SUPLFOPA` | Forma de pago |
-| `SUPLPRNT/SUPLPRNE` | Primas netas (total/extranjero) |
-| `SUPLIMPT/SUPLIMPE` | Impuestos (total/extranjero) |
-| `SUPLTORE` | Total recibo |
-| `SUPLDESC_G01..G08` | 8 grupos de descuento |
-| `SUP_CDG_TIPOVIA..SUP_CVIA_INE` | Campos de domicilio normalizado |
-| `SUPLINDVTAC` | Indicador venta cruzada |
-| `SUPLINDPRIC` | Indicador pricing |
+import java.math.BigDecimal;
+
+@Entity
+@Table(name = "TCSUPL", schema = "SCOTT")
+@IdClass(TcsuplPK.class)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class TcsuplEntity {
+
+    @Id
+    @Column(name = "SUPLCDDE")
+    private Integer delegationCode;
+
+    @Id
+    @Column(name = "SUPLNPOL")
+    private Integer policyNumber;
+
+    @Id
+    @Column(name = "SUPLCDCE")
+    private Integer certificateCode;
+
+    @Id
+    @Column(name = "SUPLNUSU")
+    private Integer supplementNumber;
+
+    @Column(name = "SUPLTIPO", length = 2)
+    private String policyType;
+
+    @Column(name = "SUPLSITP", length = 2)
+    private String policyStatus;
+
+    @Column(name = "SUPLSITC", length = 2)
+    private String certifcateStatus;
+
+    @Column(name = "SUPLFECA", length = 8)
+    private String supplementStartDate;
+
+    @Column(name = "SUPLFECB", length = 8)
+    private String supplementEndDate;
+
+    @Column(name = "SUPLFECC", length = 8)
+    private String policyStartDate;
+
+    @Column(name = "SUPLFEBA", length = 8)
+    private String policyEndDate;
+
+    @Column(name = "SUPLCDPC", length = 2)
+    private String collectivePaymentTypeCode;
+
+    @Column(name = "SUPLCDPT")
+    private Integer productNumber;
+
+    @Column(name = "SUPLCDTA", length = 5)
+    private String rateCode;
+
+    @Column(name = "SUPLFOPA", length = 2)
+    private String paymentMethod;
+
+    @Column(name = "SUPLTIPA", length = 2)
+    private String paymentTypeCode;
+
+    @Column(name = "SUPLNUPE")
+    private Integer insuredNumber;
+
+    @Column(name = "SUPLIDCP", length = 1)
+    private String specialPolicyCommissionFlag;
+
+    @Column(name = "SUPLIDCO", length = 1)
+    private String specialCoveragesFlag;
+
+    @Column(name = "SUPLCDTR", length = 2)
+    private String collectiveTarificationCode;
+
+    @Column(name = "SUPLIDEX", length = 1)
+    private String foreignFlag;
+
+    @Column(name = "SUPLCOBR", length = 9)
+    private String collector;
+
+    @Column(name = "SUPLAGTA", length = 9)
+    private String mainAgent;
+
+    @Column(name = "SUPLAGTB", length = 9)
+    private String secondaryAgent;
+
+    @Column(name = "SUPLINSP", length = 9)
+    private String inspector;
+
+    @Column(name = "SUPLPRNT", precision = 14, scale = 4)
+    private BigDecimal netPremium;
+
+    @Column(name = "SUPLPRNE", precision = 14, scale = 4)
+    private BigDecimal foreignNetPremium;
+
+    @Column(name = "SUPLRECA", precision = 14, scale = 4)
+    private BigDecimal surcharge;
+
+    @Column(name = "SUPLRECE", precision = 14, scale = 4)
+    private BigDecimal foreignSurcharge;
+
+    @Column(name = "SUPLIMPT", precision = 14, scale = 4)
+    private BigDecimal taxRate;
+
+    @Column(name = "SUPLIMPE", precision = 14, scale = 4)
+    private BigDecimal foreignTaxRate;
+
+    @Column(name = "SUPLTORE", precision = 14, scale = 4)
+    private BigDecimal totalReceipt;
+
+    @Column(name = "SUPLMOBP", length = 2)
+    private String policyCancellationReason;
+
+    @Column(name = "SUPLMOCE", length = 2)
+    private String certificateCancellationReason;
+
+    @Column(name = "SUPLIDMA", length = 1)
+    private String autoAssignCertificateNumbersFlag;
+
+    @Column(name = "SUPLDOMI", length = 80)
+    private String benefitAddress;
+
+    @Column(name = "SUPLCDPS", length = 5)
+    private String benefitPostalCode;
+
+    @Column(name = "SUPLCDPO", length = 7)
+    private String suplcdpo;
+
+    @Column(name = "SUPLTFNO")
+    private Integer supltfno;
+
+    @Column(name = "SUPLNUCE")
+    private Integer suplnuce;
+
+    @Column(name = "SUPLCRNT", precision = 14, scale = 4)
+    private BigDecimal suplcrnt;
+
+    @Column(name = "SUPLCRNE", precision = 14, scale = 4)
+    private BigDecimal suplcrne;    
+
+    @Column(name = "SUPLCECA", precision = 14, scale = 4)
+    private BigDecimal suplceca;
+
+    @Column(name = "SUPLCECE", precision = 14, scale = 4)
+    private BigDecimal suplcece;
+
+    @Column(name = "SUPLCMPT", precision = 14, scale = 4)
+    private BigDecimal suplcmpt;
+
+    @Column(name = "SUPLCMPE", precision = 14, scale = 4)
+    private BigDecimal suplcmpe;
+
+    @Column(name = "SUPLCORE", precision = 14, scale = 4)
+    private BigDecimal suplcore;
+
+    @Column(name = "SUPLIPUN", precision = 14, scale = 4)
+    private BigDecimal suplipun;
+
+    @Column(name = "SUPLIPUE", precision = 14, scale = 4)
+    private BigDecimal suplipue;
+
+    @Column(name = "SUPLCPUN", precision = 14, scale = 4)
+    private BigDecimal suplcpun;
+
+    @Column(name = "SUPLCPUE", precision = 14, scale = 4)
+    private BigDecimal suplcpue;
+
+    @Column(name = "SUPLICON", precision = 14, scale = 4)
+    private BigDecimal suplicon;
+
+    @Column(name = "SUPLCCON", precision = 14, scale = 4)
+    private BigDecimal suplccon;
+
+    @Column(name = "SUPLPRDE", precision = 14, scale = 4)
+    private BigDecimal suplprde;
+
+    @Column(name = "SUPLCRDE", precision = 14, scale = 4)
+    private BigDecimal suplcrde;
+
+    @Column(name = "SUPLBENE", length = 40)
+    private String suplbene;
+
+    @Column(name = "SUPLCDPA", length = 2)
+    private String countryCode;
+
+    @Column(name = "SUPLCDRP")
+    private Integer paymentRuleCode;
+
+    @Column(name = "SUPLPROVINCIA_TARIFICACION", length = 2)
+    private String tarificationProvincia;
+
+    @Column(name = "SUPLSWPROVINCIA", length = 1)
+    private String updatePolicyFlag;
+
+    @Column(name = "SUPLSWTARIFA", length = 1, nullable = false)
+    private String updateRateFlag;
+
+    @Column(name = "SUPLSWDCTO", length = 1, nullable = false)
+    private String updateDiscountFlag;
+
+    @Column(name = "SUPLSWPRODUCCION", length = 1, nullable = false)
+    private String useProductionRateFlag;
+
+    @Column(name = "SUPLTIPO_DCTO", length = 3, nullable = false)
+    private String certificateDiscountType;
+
+    @Column(name = "SUPLDCTONUMPERSONAS", precision = 7, scale = 4)
+    private BigDecimal peopleNumberDiscount;
+
+    @Column(name = "SUPLRECFORMAPAGO", precision = 7, scale = 4)
+    private BigDecimal paymentMethodSurchage;
+
+    @Column(name = "SUPLADAP", length = 2)
+    private String adaptedPolicy;
+
+    @Column(name = "SUPLTERRITORIALIDAD", length = 2)
+    private String territoriality;
+
+    @Column(name = "SUP_CDG_TIPOVIA", length = 10)
+    private String streetType;
+
+    @Column(name = "SUP_NOMBREVIA", length = 100)
+    private String streetName;
+
+    @Column(name = "SUP_NUMEROVIA", length = 5)
+    private String streetNumber;
+
+    @Column(name = "SUP_PORTAL", length = 3)
+    private String streetGate;
+
+    @Column(name = "SUP_BLOQUE", length = 3)
+    private String blockNumber;
+
+    @Column(name = "SUP_ESCALERA", length = 3)
+    private String stairsNumber;
+
+    @Column(name = "SUP_PISO", length = 4)
+    private String floor;
+
+    @Column(name = "SUP_PUERTA", length = 5)
+    private String door;
+
+    @Column(name = "SUP_RESTOVIA", length = 100)
+    private String otherStreetInfo;
+
+    @Column(name = "SUP_COD_BDI", length = 10)
+    private String bdiCertificateCode;
+
+    @Column(name = "SUP_CPOBLA_INE", length = 20)
+    private String ineTownCode;
+
+    @Column(name = "SUP_CVIA_INE", length = 20)
+    private String ineStreetCode;
+
+    @Column(name = "SUPLDESC_G01", precision = 7, scale = 4)
+    private BigDecimal discountGroup1Value;
+
+    @Column(name = "SUPLDESC_G02", precision = 7, scale = 4)
+    private BigDecimal discountGroup2Value;
+
+    @Column(name = "SUPLDESC_G03", precision = 7, scale = 4)
+    private BigDecimal discountGroup3Value;
+
+    @Column(name = "SUPLDESC_G04", precision = 7, scale = 4)
+    private BigDecimal discountGroup4Value;
+
+    @Column(name = "SUPLDESC_G05", precision = 7, scale = 4)
+    private BigDecimal discountGroup5Value;
+
+    @Column(name = "SUPLDESC_G06", precision = 7, scale = 4)
+    private BigDecimal discountGroup6Value;
+
+    @Column(name = "SUPLDESC_G07", precision = 7, scale = 4)
+    private BigDecimal discountGroup7Value;
+
+    @Column(name = "SUPLDESC_G08", precision = 7, scale = 4)
+    private BigDecimal discountGroup8Value;
+
+    @Column(name = "SUPLINDVTAC", length = 1)
+    private String policyCrossSellingFlag;
+
+    @Column(name = "SUPLINDPRIC", length = 1)
+    private String policyPricingFlag;
+
+    @Column(name = "SUPLTFNO_NUTE", length = 15)
+    private String telephoneNumber;
+
+    @Column(name = "SUPL_ID_ANONIM")
+    private Integer policyAnonymizationId;
+}
+
+package es.caser.salud.polind.entity;
+
+import jakarta.persistence.Column;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.io.Serializable;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+public class TcsuplPK implements Serializable {
+
+    @Column(name = "SUPLCDDE")
+    private Integer delegationCode;
+
+    @Column(name = "SUPLNPOL")
+    private Integer policyNumber;
+
+    @Column(name = "SUPLCDCE")
+    private Integer certificateCode;
+
+    @Column(name = "SUPLNUSU")
+    private Integer supplementNumber;
+}
+```
 
 **Tabla secundaria:** `TSSUPC` (delegada a INSERTAR_SUPLEMENTO_TSSUPC)
 
