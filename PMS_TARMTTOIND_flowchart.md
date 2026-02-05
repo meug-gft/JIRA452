@@ -492,8 +492,8 @@ para una póliza específica (**POLINPOL**).
 
 ```sql
 UPDATE DTPOLI 
-SET POLIFEER = ?
-WHERE POLINPOL = ?
+SET POLIFEER = :fechaUltimaCartera
+WHERE POLINPOL = :numeroPoliza
 ```
 
 ---
@@ -513,10 +513,10 @@ Busca prorrateos pendientes en la tabla **STPROR**.
 SELECT PRORNPOL,    -- NUMBER(9,0) Número de póliza
        PRORCDCE     -- NUMBER(5,0) Código de certificado
 FROM STPROR 
-WHERE PRORNPOL = ?
+WHERE PRORNPOL = :numeroPoliza
   AND PRORCDCE = 0
   AND PRORSITU = '01' 
-  AND PRORTORE <> PRORIPUN + PRORIPUE
+  AND PRORTORE = :totalRecibo <> PRORIPUN = :impuestoAnualizado + PRORIPUE = :impuestoAnualizadoExtranjero
 ```
 
 ---
@@ -532,16 +532,16 @@ Actualiza la fecha de versión de tarifa (**POLIFVTAR**).
 
 ```sql
 UPDATE DTPOLI 
-SET POLIFVTAR = ?
-WHERE POLINPOL = ?
+SET POLIFVTAR = :fechaVersionTarifa
+WHERE POLINPOL = :numeroPoliza
 ```
 
 ### Línea 905 (si NO cambió el código de tarifa)
 
 ```sql
 UPDATE DTPOLI 
-SET POLIFVTAR = ?
-WHERE POLINPOL = ?
+SET POLIFVTAR = :fechaVersionTarifa
+WHERE POLINPOL = :numeroPoliza
 ```
 
 ---
@@ -560,9 +560,9 @@ Elimina el histórico de tarificación anterior.
 
 ```sql
 DELETE FROM T_GEN_HISTTARI 
-WHERE HISTNPOL = ?
+WHERE HISTNPOL = :numeroPoliza
   AND HISTCDCE = 0
-  AND HISTFECH < ?
+  AND HISTFECH < :fechaFinalizacionUsoDePrecioTarifa
 ```
 
 ---
@@ -579,9 +579,9 @@ Marca peticiones automáticas antiguas como caducadas (**ESTADO = '04'**).
 UPDATE PETICION_AUT 
 SET ESTADO = '04' 
 WHERE ESTADO = '01' 
-  AND FECHA_PETICION < ?
+  AND FECHA_PETICION < :fechaPeticion
 ```
-
+(La fecha de petición es la actual -12 meses)
 ---
 
 ### Línea 978 (UPDATE DTPOLI)
@@ -596,8 +596,8 @@ Ejemplo: G_POLIFETA = '20260315' → POLIFVTAR = '20260101'
 
 ```sql
 UPDATE DTPOLI 
-SET POLIFVTAR = ?
-WHERE POLINPOL = ?
+SET POLIFVTAR = :fechaVersionTarifa
+WHERE POLINPOL = :numeroPoliza
 ```
 
 ---
@@ -618,10 +618,10 @@ Marca peticiones automáticas como completadas (**ESTADO = '02'**).
 ```sql
 UPDATE PETICION_AUT 
 SET ESTADO = '02'
-WHERE POLIZA = ?
+WHERE POLIZA = :numeroPoliza
   AND CERTIFICADO = 0 
   AND TIPO_PETICION = '01'
-  AND FECHA_PETICION <= ?
+  AND FECHA_PETICION <= :fechaPeticion
   AND TO_CHAR(ADD_MONTHS(TO_DATE(FECHA_PETICION, 'YYYYMMDD'), 12), 'YYYYMMDD') > ?
 ```
 
