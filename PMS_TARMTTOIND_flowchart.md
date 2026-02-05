@@ -450,3 +450,41 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 - **Acción:**  
   Asigna valor a `G_TECLA_PRORRATEO`
 
+
+  ---
+
+  ## Queries que hace TARMTTOIND
+
+
+  - **Query de linia 631, recupera datos antiguos de DTPOLI**
+ 
+```sql
+SELECT POLICDDE, -- NUMBER(3,0) Código de delegación gestora
+       POLINPOL, -- NUMBER(9,0) N. poliza
+       POLIFECA, -- VARCHAR2(8) Fecha alta
+       POLICDPT, -- NUMBER(4,0) Codigo de producto
+       POLIFOPA, -- VARCHAR(2) Forma de pago
+       POLIIDCO, -- VARCHAR2(1) Indicador coberturas especiales (S/N)
+       POLICOBR, -- VARCHAR2(9) NIF Cobrador
+       POLIPRNT, -- NUMBER(14,4) Prima Neta
+       POLIPRNE, -- NUMBER(14,4) Prima Neta Extranjero
+       POLIRECA, -- NUMBER(14,4) Recargo
+       POLIRECE, -- NUMBER(14,4) Recargo Extranjero
+       POLIIMPT, -- NUMBER(14,4) Impuestos
+       POLIIMPE, -- NUMBER(14,4) Impuestos Extranjero
+       POLITORE, -- NUMBER(14,4) Total Recibo
+       POLIIPUN, -- NUMBER(14,4) Impuesto Anualizado
+       POLIIPUE, -- NUMBER(14,4) Impuesto Anualizado Extranjero
+       POLINUPE, -- NUMBER(5,0)  Numero Asegurados
+       POLIFEER, -- VARCHAR2(6)  Fecha ultima cartera
+       NULL POLITIPO_DCTO, -- VARCHAR2(3) Tipo descuento
+       POLITREN, -- VARCHAR2(2) Tipo de Renovación
+       POLIFEVE  -- VARCHAR2(8) Fecha de Vencimiento
+FROM DTPOLI 
+WHERE POLICDDE = :codigoDelegacion
+  AND POLINPOL = :numeroPoliza
+FOR UPDATE;
+```
+
+
+
