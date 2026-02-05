@@ -594,7 +594,7 @@ Public Sub INSERTAR_SUPLEMENTO_TCSUPL(
 ---
 Dado que la tabla es enorme, se ha generado una entidad `TCSUPL`
 que refleja la tabla entera
-**Entidad JPA:** `TCSUPL`
+#### **Entidad JPA:** `TCSUPL`
 ```java
 package es.caser.salud.polind.entity;
 
@@ -801,25 +801,25 @@ public class TcsuplEntity {
     private String tarificationProvincia;
 
     @Column(name = "SUPLSWPROVINCIA", length = 1)
-    private String updatePolicyFlag;
+    private String updatePolicyFlag = "S";
 
     @Column(name = "SUPLSWTARIFA", length = 1, nullable = false)
-    private String updateRateFlag;
+    private String updateRateFlag = "N";
 
     @Column(name = "SUPLSWDCTO", length = 1, nullable = false)
-    private String updateDiscountFlag;
+    private String updateDiscountFlag = "N";
 
     @Column(name = "SUPLSWPRODUCCION", length = 1, nullable = false)
-    private String useProductionRateFlag;
+    private String useProductionRateFlag = "N";
 
     @Column(name = "SUPLTIPO_DCTO", length = 3, nullable = false)
-    private String certificateDiscountType;
+    private String certificateDiscountType = "000";
 
     @Column(name = "SUPLDCTONUMPERSONAS", precision = 7, scale = 4)
-    private BigDecimal peopleNumberDiscount;
+    private BigDecimal peopleNumberDiscount = 0;
 
     @Column(name = "SUPLRECFORMAPAGO", precision = 7, scale = 4)
-    private BigDecimal paymentMethodSurchage;
+    private BigDecimal paymentMethodSurchage = 0;
 
     @Column(name = "SUPLADAP", length = 2)
     private String adaptedPolicy;
