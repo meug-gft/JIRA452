@@ -622,7 +622,7 @@ WHERE POLIZA = :numeroPoliza
   AND CERTIFICADO = 0 
   AND TIPO_PETICION = '01'
   AND FECHA_PETICION <= :fechaPeticion
-  AND TO_CHAR(ADD_MONTHS(TO_DATE(FECHA_PETICION, 'YYYYMMDD'), 12), 'YYYYMMDD') > ?
+  AND TO_CHAR(ADD_MONTHS(TO_DATE(FECHA_PETICION, 'YYYYMMDD'), 12), 'YYYYMMDD') > :fechaTarificacion
 ```
 
 ---
@@ -657,11 +657,80 @@ Mismo rango de 12 meses que la query anterior.
 ```sql
 UPDATE PETICION_AUT 
 SET ESTADO = '02'
-WHERE POLIZA = ?
+WHERE POLIZA = :numeroPoliza
   AND CERTIFICADO = 0 
   AND TIPO_PETICION = '02'
-  AND FECHA_PETICION <= ?
-  AND TO_CHAR(ADD_MONTHS(TO_DATE(FECHA_PETICION, 'YYYYMMDD'), 12), 'YYYYMMDD') > ?
+  AND FECHA_PETICION <= :fechaPeticion
+  AND TO_CHAR(ADD_MONTHS(TO_DATE(FECHA_PETICION, 'YYYYMMDD'), 12), 'YYYYMMDD') > :fechaTarificacion
 ```
+
+### Línea 1053 (SELECT)
+
+Obtiene los asegurados de alta en la renovación y sus primas
+
+```sql
+SELECT POCLCDCL, SUM(POPCIPTP) 
+FROM DTPOCL 
+INNER JOIN TSPOPC ON POCLNPOL = POPCNPOL 
+  AND POCLCDCE = POPCCDCE 
+  AND POCLCDCL = POPCCDCL
+WHERE POCLNPOL = ?
+  AND POCLCDRE <> '01' 
+  AND NVL(POCLFECB,'99999999') >= ?
+  AND POCLFECA < ?
+GROUP BY POCLCDCL
+```
+
+### Línea 1136 (UPDATE T_DES_OPTIMIZACION)
+
+Marca como revisadas las optimizaciones de descuentos
+
+```sql
+UPDATE T_DES_OPTIMIZACION 
+SET OPTIESTA = 'R'
+WHERE OPTINPOL = ?
+  AND OPTICDCE = 0 
+  AND OPTIANOMES = ?
+```
+
+### Línea 1145 (UPDATE T_SIN_GRUPOS)
+
+Marca como revisados los grupos de siniestralidad
+
+```sql
+UPDATE T_SIN_GRUPOS 
+SET GRUPESTA = 'R'
+WHERE GRUPNPOL = ?
+  AND GRUPCDCE = 0 
+  AND GRUPANOMES = ?
+```
+
+### Línea 1152 (UPDATE DTPOLI)
+
+Actualiza información de descuentos y optimizaciones en DTPOLI
+
+```sql
+UPDATE DTPOLI 
+SET [strCom],
+    POLIINDTESU = ?,
+    POLIDESC_G06 = ?,
+    POLIDESC_G07 = ?,
+    POLIINDOPT = ?
+WHERE POLICDDE = ?
+  AND POLINPOL = ?
+```
+
+### Línea 1161 (UPDATE T_DES_POLIZAS_DCTO)
+
+Actualiza fecha de descuentos cuando cambió la fecha de alta
+
+```sql
+UPDATE T_DES_POLIZAS_DCTO 
+SET DPODFECH = ?
+WHERE DPODNPOL = ?
+  AND DPODCDCE = 0 
+  AND DPODFECH = ?
+```
+
 
 
