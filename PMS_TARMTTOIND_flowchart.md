@@ -485,5 +485,183 @@ WHERE POLICDDE = :codigoDelegacion
 FOR UPDATE;
 ```
 
+## Líneas 820 y 890
+
+Actualiza la fecha de última cartera emitida (**POLIFEER**)  
+para una póliza específica (**POLINPOL**).
+
+```sql
+UPDATE DTPOLI 
+SET POLIFEER = ?
+WHERE POLINPOL = ?
+```
+
+---
+
+## Línea 825
+
+Busca prorrateos pendientes en la tabla **STPROR**.
+
+### Condiciones
+- **PRORNPOL** = número de póliza
+- **PRORCDCE** = 0 (certificado 0 → póliza)
+- **PRORSITU** = '01' (estado de prorrateo activo)
+- **PRORTORE <> PRORIPUN + PRORIPUE**  
+  (el total del recibo no coincide con la suma de impuestos)
+
+```sql
+SELECT PRORNPOL,    -- NUMBER(9,0) Número de póliza
+       PRORCDCE     -- NUMBER(5,0) Código de certificado
+FROM STPROR 
+WHERE PRORNPOL = ?
+  AND PRORCDCE = 0
+  AND PRORSITU = '01' 
+  AND PRORTORE <> PRORIPUN + PRORIPUE
+```
+
+---
+
+## Líneas 902 y 905
+
+Actualiza la fecha de versión de tarifa (**POLIFVTAR**).
+
+- Si cambió el código de tarifa: se establece al **01/01 del año actual**
+- Si NO cambió el código de tarifa: se usa la fecha seleccionada (**G_POLIFVTAR**)
+
+### Línea 902 (si cambió el código de tarifa)
+
+```sql
+UPDATE DTPOLI 
+SET POLIFVTAR = ?
+WHERE POLINPOL = ?
+```
+
+### Línea 905 (si NO cambió el código de tarifa)
+
+```sql
+UPDATE DTPOLI 
+SET POLIFVTAR = ?
+WHERE POLINPOL = ?
+```
+
+---
+
+## Reactivación de póliza
+
+### Línea 950 (DELETE)
+
+Se ejecuta durante la reactivación de la póliza.  
+Elimina el histórico de tarificación anterior.
+
+### Condiciones
+- Mismo número de póliza
+- Certificado 0 (póliza)
+- Fecha menor que la fecha de vencimiento actual
+
+```sql
+DELETE FROM T_GEN_HISTTARI 
+WHERE HISTNPOL = ?
+  AND HISTCDCE = 0
+  AND HISTFECH < ?
+```
+
+---
+
+### Línea 956 (UPDATE)
+
+Marca peticiones automáticas antiguas como caducadas (**ESTADO = '04'**).
+
+### Condiciones
+- Estado activo (**'01'**)
+- Fecha de petición con más de 12 meses de antigüedad
+
+```sql
+UPDATE PETICION_AUT 
+SET ESTADO = '04' 
+WHERE ESTADO = '01' 
+  AND FECHA_PETICION < ?
+```
+
+---
+
+### Línea 978 (UPDATE DTPOLI)
+
+Contexto: reactivación de póliza cuando **cambia la tarifa**.
+
+Actualiza la fecha de versión de tarifa (**POLIFVTAR**) asignándola  
+al primer día del año de la fecha de tarificación:
+
+POLIFVTAR = LEFT(G_POLIFETA, 4) || '0101'  
+Ejemplo: G_POLIFETA = '20260315' → POLIFVTAR = '20260101'
+
+```sql
+UPDATE DTPOLI 
+SET POLIFVTAR = ?
+WHERE POLINPOL = ?
+```
+
+---
+
+### Línea 984 (UPDATE PETICION_AUT)
+
+Contexto: reactivación cuando **cambió la tarifa**.
+
+Marca peticiones automáticas como completadas (**ESTADO = '02'**).
+
+### Condiciones
+- Póliza específica
+- Certificado 0
+- Tipo de petición = '01' (cambio de tarifa)
+- Fecha de petición menor o igual a la fecha de efectividad
+- Antigüedad menor a 12 meses
+
+```sql
+UPDATE PETICION_AUT 
+SET ESTADO = '02'
+WHERE POLIZA = ?
+  AND CERTIFICADO = 0 
+  AND TIPO_PETICION = '01'
+  AND FECHA_PETICION <= ?
+  AND TO_CHAR(ADD_MONTHS(TO_DATE(FECHA_PETICION, 'YYYYMMDD'), 12), 'YYYYMMDD') > ?
+```
+
+---
+
+### Línea 1000 (SELECT)
+
+Contexto: detección de cambios en descuentos durante reactivación.
+
+Obtiene todos los grupos de descuentos disponibles  
+(códigos menores que 90), ordenados por código.
+
+Propósito: iterar y comparar descuentos antiguos vs nuevos.
+
+```sql
+SELECT *
+FROM T_DES_GRUPOS 
+WHERE DGRUCODG < 90 
+ORDER BY 1
+```
+
+---
+
+### Línea 1015 (UPDATE PETICION_AUT)
+
+Contexto: reactivación cuando **cambió el descuento**.
+
+Marca peticiones automáticas de cambio de descuento  
+(**TIPO_PETICION = '02'**) como completadas (**ESTADO = '02'**).
+
+Mismo rango de 12 meses que la query anterior.
+
+```sql
+UPDATE PETICION_AUT 
+SET ESTADO = '02'
+WHERE POLIZA = ?
+  AND CERTIFICADO = 0 
+  AND TIPO_PETICION = '02'
+  AND FECHA_PETICION <= ?
+  AND TO_CHAR(ADD_MONTHS(TO_DATE(FECHA_PETICION, 'YYYYMMDD'), 12), 'YYYYMMDD') > ?
+```
 
 
