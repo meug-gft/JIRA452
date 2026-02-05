@@ -324,31 +324,30 @@ PMS_BORRA_DETALLE_PRORRATEO(Poliza, "0", "")
 
 ## Pop-ups avisos
 
-## 📌 Llamadas a `Mostrar_Pantalla_Confirmacion`
+##  Llamadas a `Mostrar_Pantalla_Confirmacion`
 
 Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
-### 🔹 Llamada 1 — Línea **478**
+###  Llamada 1 — Línea **478**
 - **Ubicación:** Dentro de una función (probablemente *colectivos*)
 - **Comentario:**  
   > Muestra la pantalla de confirmación con los importes de la operación
 
-### 🔹 Llamada 2 — Línea **1386**
+###  Llamada 2 — Línea **1386**
 - **Ubicación:** Dentro de `PMS_TARMTTOIND()`
 - **Comentario:**  
   > Muestra la pantalla con la información de los prorrateos y primas anuales resultantes
 
 ---
 
-## 🪟 Pantallas Emergentes — Cadena de Llamadas
-
+##  Pantallas Emergentes — Cadena de Llamadas
 
 
 ---
 
-## 🧩 Fase 1: Dentro de `PMS_TARMTTOIND()` (línea 500+)
+##  Fase 1: Dentro de `PMS_TARMTTOIND()` (línea 500+)
 
-### ❌ Línea 711 — Error crítico
+###  Línea 711 — Error crítico
 - **Condición:** Se detectan múltiples cambios simultáneos
 - **Mensaje:**  
   > "Realice un sólo cambio a la vez"
@@ -356,7 +355,7 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
 ---
 
-### ❓ Línea 719 — Pregunta Sí / No / Cancelar
+###  Línea 719 — Pregunta Sí / No / Cancelar
 - **Condición:**  
   `bCambio_Tarifa = True` **y** existen descuentos de siniestralidad/pricing
 - **Mensaje:**  
@@ -365,7 +364,7 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
 ---
 
-### ❓ Línea 724 — Pregunta Sí / No
+###  Línea 724 — Pregunta Sí / No
 - **Condición:**  
   `bCambio_Tarifa = True` **y** no existen descuentos de siniestralidad/pricing
 - **Mensaje:**  
@@ -374,7 +373,7 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
 ---
 
-### ❌ Línea 772 — Error crítico
+###  Línea 772 — Error crítico
 - **Condición:** Validación de fecha falló
 - **Mensaje:**  
   > "La fecha debe estar comprendida entre el [fecha] y el [fecha]"
@@ -382,7 +381,7 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
 ---
 
-### ℹ️ Línea 834 — Mensaje informativo
+###  Línea 834 — Mensaje informativo
 - **Condición:**  
   `bCambio_FPago = True` **y** existen prorrateos pendientes
 - **Mensaje:**  
@@ -391,7 +390,7 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
 ---
 
-### ℹ️ Línea 840 — Mensaje informativo
+###  Línea 840 — Mensaje informativo
 - **Condición:**  
   `bCambio_FPago = True` **y** las formas de pago son similares
 - **Mensaje:**  
@@ -400,7 +399,7 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
 ---
 
-### ℹ️ Línea 849 — Mensaje informativo
+###  Línea 849 — Mensaje informativo
 - **Condición:**  
   `G_Fecha_Asegurado <> ""` **y** se detecta operación de rehabilitación
 - **Mensaje:**  
@@ -409,7 +408,7 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
 ---
 
-### ℹ️ Línea 1300 — Mensaje informativo
+###  Línea 1300 — Mensaje informativo
 - **Condición:**  
   La fecha de efecto del suplemento no tiene primas definidas
 - **Mensaje:**  
@@ -418,7 +417,7 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
 ---
 
-### ❌ Línea 1338 — Error crítico (Servicio Web)
+###  Línea 1338 — Error crítico (Servicio Web)
 - **Condición:**  
   `MdlTiposDescuento.QRYPRICINGWS_STR <> ""`
 - **Mensaje:**  
@@ -427,10 +426,10 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
 ---
 
-## 🧩 Fase 2: Dentro de `Mostrar_Pantalla_Confirmacion()` (línea 46+)  
+##  Fase 2: Dentro de `Mostrar_Pantalla_Confirmacion()` (línea 46+)  
 *(Llamada desde `PMS_TARMTTOIND()`)*
 
-### ℹ️ Línea 93 — Mensaje informativo
+###  Línea 93 — Mensaje informativo
 - **Condición:**  
   `Trim(CDbl(DTAS005.TX_TORE.Text)) > 5000`  
   **o**  
@@ -441,7 +440,7 @@ Hay **2 llamadas** a `Mostrar_Pantalla_Confirmacion`:
 
 ---
 
-### ❓ Línea 100 — Pregunta Sí / No ⭐ *(la más probable)*
+###  Línea 100 — Pregunta Sí / No  *(la más probable)*
 - **Condición:**  
   `CCurNoNulls(DTAS005.TX_TORE.Text) = 0`
 - **Mensaje:**  
