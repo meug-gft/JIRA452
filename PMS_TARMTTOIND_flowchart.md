@@ -676,60 +676,77 @@ INNER JOIN TSPOPC ON POCLNPOL = POPCNPOL
   AND POCLCDCL = POPCCDCL
 WHERE POCLNPOL = :numeroPoliza
   AND POCLCDRE <> '01' 
-  AND NVL(POCLFECB,'99999999') >= ?
+  AND NVL(POCLFECB,'99999999') >= :fechaBaja
   AND POCLFECA < :fechaAlta
 GROUP BY POCLCDCL
 ```
 
-### Línea 1136 (UPDATE T_DES_OPTIMIZACION)
+### Línea 1205 (UPDATE T_DES_OPTIMIZACION)
 
 Marca como revisadas las optimizaciones de descuentos
 
 ```sql
 UPDATE T_DES_OPTIMIZACION 
 SET OPTIESTA = 'R'
-WHERE OPTINPOL = ?
+WHERE OPTINPOL = :numeroPoliza
   AND OPTICDCE = 0 
-  AND OPTIANOMES = ?
+  AND OPTIANOMES = :anyMesRenovacion
 ```
 
-### Línea 1145 (UPDATE T_SIN_GRUPOS)
+### Línea 1216 (UPDATE T_SIN_GRUPOS)
 
 Marca como revisados los grupos de siniestralidad
 
 ```sql
 UPDATE T_SIN_GRUPOS 
 SET GRUPESTA = 'R'
-WHERE GRUPNPOL = ?
+WHERE GRUPNPOL = :numeroPoliza
   AND GRUPCDCE = 0 
-  AND GRUPANOMES = ?
+  AND GRUPANOMES = :anyMesRenovacion
 ```
 
-### Línea 1152 (UPDATE DTPOLI)
+### Línea 1229 (UPDATE DTPOLI)
 
 Actualiza información de descuentos y optimizaciones en DTPOLI
 
+Si G_POLIFETA <> G_POLI2FETA (Condición VERDADERA):
+
 ```sql
-UPDATE DTPOLI 
-SET [strCom],
-    POLIINDTESU = ?,
-    POLIDESC_G06 = ?,
-    POLIDESC_G07 = ?,
-    POLIINDOPT = ?
-WHERE POLICDDE = ?
-  AND POLINPOL = ?
+UPDATE DTPOLI SET 
+  POLIVIP_ANT = '[valor de G_POLIVIP]',
+  POLIVIP = [NULL o último carácter de G_POLIGSIN],
+  POLIGSIN = NULL,
+  POLIINDTESU = 'S' o 'N',
+  POLIDESC_G06 = [valor importe],
+  POLIDESC_G07 = [valor importe],
+  POLIINDOPT = 'S' o 'N'
+WHERE POLICDDE = [valor de G_POLICDDE]
+  AND POLINPOL = [valor de G_POLINPOL]
+  ```
+
+Si G_POLIFETA <> G_POLI2FETA (Condición FALSA):
+```sql
+UPDATE DTPOLI SET 
+  POLIINDTESU = 'S' o 'N',
+  POLIDESC_G06 = [valor importe],
+  POLIDESC_G07 = [valor importe],
+  POLIINDOPT = 'S' o 'N'
+WHERE POLICDDE = [valor de G_POLICDDE]
+  AND POLINPOL = [valor de G_POLINPOL]
 ```
 
-### Línea 1161 (UPDATE T_DES_POLIZAS_DCTO)
+
+
+### Línea 1241 (UPDATE T_DES_POLIZAS_DCTO)
 
 Actualiza fecha de descuentos cuando cambió la fecha de alta
 
 ```sql
 UPDATE T_DES_POLIZAS_DCTO 
-SET DPODFECH = ?
-WHERE DPODNPOL = ?
+SET DPODFECH = :fechaAplicacion
+WHERE DPODNPOL = :numeroPoliza
   AND DPODCDCE = 0 
-  AND DPODFECH = ?
+  AND DPODFECH = :fechaAplicacion
 ```
 
 
