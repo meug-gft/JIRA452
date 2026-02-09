@@ -953,32 +953,47 @@ Public Sub GRABAR_MOVIMIENTO(sTipo As String, sDelegacion As String, sFecha As S
     Dim HSTMT As Long
     Dim ENDCODE As Integer
     
-    sql_Fields = "": sql_Values = ""
-    sql_Fields = "MOVINUME,": sql_Values = "SQ_MOVIM.NEXTVAL,"
-    sql_Fields = sql_Fields & " MOVITIPO,": sql_Values = sql_Values & "'" & Trim(sTipo) & "',"
-    sql_Fields = sql_Fields & " MOVICDDE,": sql_Values = sql_Values & Trim(sDelegacion) & ","
-    sql_Fields = sql_Fields & " MOVIFECH,": sql_Values = sql_Values & "'" & Trim(sFecha) & "',"
-    sql_Fields = sql_Fields & " MOVINPOL,": sql_Values = sql_Values & Trim(sPoliza) & ","
-    sql_Fields = sql_Fields & " MOVICDCE,": sql_Values = sql_Values & Trim(sCertificado) & ","
-    sql_Fields = sql_Fields & " MOVIUSUA,": sql_Values = sql_Values & "'" & Trim(sUsuario) & "',"
-    sql_Fields = sql_Fields & " MOVINUSU,": sql_Values = sql_Values & Trim(sSuplemento) & ","
+    sql_Fields = ""
+    sql_Fields = "MOVINUME,"
+    sql_Fields = sql_Fields & " MOVITIPO,"
+    sql_Fields = sql_Fields & " MOVICDDE,"
+    sql_Fields = sql_Fields & " MOVIFECH,"
+    sql_Fields = sql_Fields & " MOVINPOL,"
+    sql_Fields = sql_Fields & " MOVICDCE,"
+    sql_Fields = sql_Fields & " MOVIUSUA,"
+    sql_Fields = sql_Fields & " MOVINUSU,"
     sql_Fields = sql_Fields & " MOVICDCL"
+
+    sql_Values = ""
+    sql_Values = "SQ_MOVIM.NEXTVAL,"
+    sql_Values = sql_Values & "'" & Trim(sTipo) & "',"
+    sql_Values = sql_Values & Trim(sDelegacion) & ","
+    sql_Values = sql_Values & "'" & Trim(sFecha) & "',"
+    sql_Values = sql_Values & Trim(sPoliza) & ","
+    sql_Values = sql_Values & Trim(sCertificado) & ","
+    sql_Values = sql_Values & "'" & Trim(sUsuario) & "',"
+    sql_Values = sql_Values & Trim(sSuplemento) & ","
+    
     If Trim(sCliente) = "" Then
       sql_Values = sql_Values & "NULL"
     Else
       sql_Values = sql_Values & Trim(sCliente)
     End If
     If UCase(sAntes) <> "NULL" And NoNulls(sAntes) <> "" Then
-        sql_Fields = sql_Fields & ", MOVIANTE": sql_Values = sql_Values & ",'" & Trim(sAntes) & "'"
+        sql_Fields = sql_Fields & ", MOVIANTE"
+        sql_Values = sql_Values & ",'" & Trim(sAntes) & "'"
     End If
     If UCase(sDespues) <> "NULL" And NoNulls(sDespues) <> "" Then
-        sql_Fields = sql_Fields & ", MOVIDESP":  sql_Values = sql_Values & ",'" & Trim(sDespues) & "'"
+        sql_Fields = sql_Fields & ", MOVIDESP"
+        sql_Values = sql_Values & ",'" & Trim(sDespues) & "'"
     End If
     If NoNulls(sFecha_Efecto) <> "" Then
-        sql_Fields = sql_Fields & ", MOVIFECH_EFECTO":  sql_Values = sql_Values & ",'" & Trim(sFecha_Efecto) & "'"
+        sql_Fields = sql_Fields & ", MOVIFECH_EFECTO"
+        sql_Values = sql_Values & ",'" & Trim(sFecha_Efecto) & "'"
     End If
     If NoNulls(sNumExpSGO) <> "" Then
-        sql_Fields = sql_Fields & ", MOVITAREA_SGO":  sql_Values = sql_Values & ",'" & Trim(sNumExpSGO) & "'"
+        sql_Fields = sql_Fields & ", MOVITAREA_SGO"
+        sql_Values = sql_Values & ",'" & Trim(sNumExpSGO) & "'"
     End If
     Stat = "INSERT INTO TCMOVI(" & sql_Fields & ") VALUES (" & sql_Values & ")"
     
