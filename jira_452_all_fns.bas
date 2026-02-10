@@ -1435,3 +1435,89 @@ Public Function Grabacion_Importe(ByVal vImporte As Variant, ByVal bEuros As Boo
     End If
 
 End Function
+
+'****************************************************************************
+'NOMBRE     : CalculaPorcentajeGrupo
+'PARAMETROS : codigo de descuento
+'             Fecha de aplicacion
+'             Criterio desde para el rango del descuento
+'FUNCION    : devuelve porcentaje de descuento a aplicar dentro del rango segun los parametros de entrada
+'****************************************************************************
+Public Function CalculaPorcentajeGrupo(subtipo As String, dFecha As String, sCriterio As String, Optional ByRef dblSuelo As Double) As Double
+    Dim W_STAT  As String
+    Dim W_HSTMT As Long
+    Dim W_FETCHCODE  As Long
+    Dim W_ENDCODE  As Integer
+    Dim DETARRAY() As String * 255
+    Dim sGrupo As String
+
+    dblSuelo = 0
+    If Trim(subtipo) = "" Then
+        subtipo = "000"
+    End If
+    
+    W_STAT = "SELECT DGRDCODG " & _
+             "  FROM T_DES_GRUPOS_REL_DESC " & _
+             " WHERE DGRDCODD = " & Trim(subtipo)
+    W_HSTMT = SQL_EXEC(G_HDBC, W_STAT, 0)
+    W_FETCHCODE = SQL_FETCH(W_HSTMT, "Next", DETARRAY())
+
+    If W_FETCHCODE = 0 Then
+        sGrupo = Trim(DETARRAY(0))
+    Else
+        'Si no encuentra grupo, se indica uno inexistente y accede por la consulta que obtiene un valor sin rango.
+        sGrupo = "00"
+    End If
+    W_ENDCODE = SQL_END(W_HSTMT)
+        
+    If sGrupo = "01" Or sGrupo = "03" Or sGrupo = "08" Then
+        W_STAT = "SELECT PORCENTAJE " & _
+                 "  FROM DETALLE_SUBTIPO_DCTO A " & _
+                 " WHERE SUBTIPO_DCTO ='" & Trim(subtipo) & "'" & _
+                 "   AND TO_NUMBER(CRITERIO_DESDE) <=  NVL(" & Trim(sCriterio) & ",0)" & _
+                 "   AND TO_NUMBER(NVL(CRITERIO_HASTA, '99999')) >=  NVL(" & Trim(sCriterio) & ",0)" & _
+                 "   AND FECHA_APLICACION = ( SELECT MAX(B.FECHA_APLICACION) " & _
+                 "                             FROM SUBTIPO_DCTO B" & _
+                 "                            WHERE B.SUBTIPO_DCTO = A.SUBTIPO_DCTO " & _
+                 "                              AND (FECHA_BAJA IS NULL OR FECHA_BAJA > '" & Format(Now, "YYYYMMDD") & "') " & _
+                 "                              AND B.FECHA_APLICACION <= '" & dFecha & "')" & _
+                 " ORDER BY TO_NUMBER(CRITERIO_DESDE) DESC"
+    ElseIf sGrupo = "98" Then
+         
+         W_STAT = "SELECT PORCENTAJE, SUELO " & _
+                 "  FROM DETALLE_SUBTIPO_DCTO A " & _
+                 " WHERE SUBTIPO_DCTO ='" & Trim(subtipo) & "'" & _
+                 "   AND CRITERIO_DESDE = NVL('" & Trim(sCriterio) & "','0')" & _
+                 "   AND FECHA_APLICACION = ( SELECT MAX(B.FECHA_APLICACION) " & _
+                 "                             FROM SUBTIPO_DCTO B" & _
+                 "                            WHERE B.SUBTIPO_DCTO = A.SUBTIPO_DCTO " & _
+                 "                              AND (FECHA_BAJA IS NULL OR FECHA_BAJA > '" & Format(Now, "YYYYMMDD") & "') " & _
+                 "                              AND B.FECHA_APLICACION <= '" & dFecha & "')"
+         
+    Else
+        W_STAT = "SELECT PORCENTAJE " & _
+                 "  FROM DETALLE_SUBTIPO_DCTO A " & _
+                 " WHERE SUBTIPO_DCTO ='" & Trim(subtipo) & "'" & _
+                 "   AND CRITERIO_DESDE = NVL('" & Trim(sCriterio) & "','0')" & _
+                 "   AND FECHA_APLICACION = ( SELECT MAX(B.FECHA_APLICACION) " & _
+                 "                             FROM SUBTIPO_DCTO B" & _
+                 "                            WHERE B.SUBTIPO_DCTO = A.SUBTIPO_DCTO " & _
+                 "                              AND (FECHA_BAJA IS NULL OR FECHA_BAJA > '" & Format(Now, "YYYYMMDD") & "') " & _
+                 "                              AND B.FECHA_APLICACION <= '" & dFecha & "')"
+
+    End If
+       
+    W_HSTMT = SQL_EXEC(G_HDBC, W_STAT, 0)
+    W_FETCHCODE = SQL_FETCH(W_HSTMT, "Next", DETARRAY())
+
+    If W_FETCHCODE = 0 Then
+        CalculaPorcentajeGrupo = IIf(Trim(DETARRAY(0)) = "", 0, Trim(DETARRAY(0)))
+        If sGrupo = "98" Then
+            dblSuelo = IIf(Trim(DETARRAY(1)) = "", 0, Trim(DETARRAY(1)))
+        End If
+    Else
+        CalculaPorcentajeGrupo = 0
+        dblSuelo = 0
+    End If
+    W_ENDCODE = SQL_END(W_HSTMT)
+End Function
